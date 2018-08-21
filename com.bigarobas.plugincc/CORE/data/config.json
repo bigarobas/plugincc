@@ -1,0 +1,12 @@
+{
+    "DEFAULT_SYSTEM_PATH_SEPARATOR" : "/",
+    "DEFAULT_FILE_NAME_SEPARATOR" : "_",
+    "DEFAULT_MODULES_AUTO_DETECT_PATH" : "/PLUGIN/modules/",
+    "CORE_IMPORTS_JSX" : [
+        "CORE/jsx/libs/json2.jsx",
+        "CORE/mixed/debugger.jsx",
+        "CORE/mixed/config.jsx",
+        "CORE/mixed/_WIP_JSXHelper.jsx",
+        "CORE/jsx/libs/JSXHelper/JSXHelper.jsx"
+    ]
+}

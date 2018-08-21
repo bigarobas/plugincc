@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title></title>
+</head>
+<body>
+   
+</body>
+
+<script src="../../CORE/mixed/debugger2.jsx"></script>
+<script>
+    var d1 = new Debugger("app 1");
+    var c1 = d1.channel("A");
+    var c2 = d1.channel("A").channel("B");
+
+    var d2 = new Debugger("app 2");
+    var c3 = d2.channel("C");
+    var c4 = d2.channel("C").channel("D");
+
+    c2.log("HELLO");
+    c4.log("HELLO");
+
+    console.log(c1,c2,c3,c4);
+
+</script>
+</html>

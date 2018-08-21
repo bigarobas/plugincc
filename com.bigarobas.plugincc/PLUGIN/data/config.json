@@ -1,0 +1,9 @@
+{
+    "EXTENSION_ID" : "com.bigarobas.plugincc.template",
+    "PLUGIN_IMPORTS_JSX" : [
+        "CORE/jsx/libs/JSXHelper/JSXHelper_AEFT.jsx"
+    ],
+    "PLUGIN_MODULES_AUTO_DETECT" : true,
+    "PLUGIN_MODULES_AUTO_DETECT_PATH" : "",
+    "PLUGIN_MODULES" : []
+}

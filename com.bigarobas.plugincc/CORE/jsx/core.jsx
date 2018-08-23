@@ -9,36 +9,44 @@ CORE = (function () {
         var PlugPlugExternalObjectLib;
 
         function init() {
+            initPlugPlugExternalObjectLib();
             dispatchCustomEvent("CORE.JSX.INIT.BEGIN");
             initLogger();
-            initPlugPlugExternalObjectLib();
             initConfig(); 
             DEBUG.channel('core.jsx').log("init");
             dispatchCustomEvent("CORE.JSX.INIT.END");
         }
 
         function initLogger() {
+            Debugger.setBridgeName("Debugger");
             DEBUG = debug = Debug = new Debugger();
             DEBUG.channel('core.jsx').setVerbose(true,true,true);
         
             JSXH = new JSXHelper2();
-            JSXMT = new JSXMirrorTest("JSXMT");
+            
+            JSXMT = new JSXBridgeTest("JSXMT");
+            /*
             JSXMT.popup("POPUP FROM JSXMT JSX");
 		    JSXMT.popin("POPIN FROM JSXMT JSX");
+            */
 
         }
 
         function initConfig() {
-            CONFIG = config = new Configuration();
+            CONFIG = config = new Configuration("CONFIG");
         }
 
         function initPlugPlugExternalObjectLib() {
-            try {
-                PlugPlugExternalObjectLib = new ExternalObject("lib:\PlugPlugExternalObject");
-            } catch (e) { 
-                alert(e) 
-            }
-            DEBUG.channel('core.jsx').log("initPlugPlugExternalObjectLib : ").json(PlugPlugExternalObjectLib);
+            if (typeof CSXSEvent == 'undefined') {
+                try {
+                    PlugPlugExternalObjectLib = new ExternalObject("lib:\PlugPlugExternalObject");
+                } catch (e) { 
+                    alert("CORE.jsx couldn't create lib:\PlugPlugExternalObject");
+                    alert(e); 
+                    return false;
+                }
+            }	
+            dispatchCustomEvent("CORE.JSX.PLUGPLUG.INITIALIZED");
         }
 
         function start() {

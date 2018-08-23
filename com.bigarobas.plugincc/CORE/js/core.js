@@ -6,16 +6,20 @@ __EXTENTION_PATH__ = __CSI__.getSystemPath(SystemPath.EXTENSION);
 
 $ =  require(__EXTENTION_PATH__ + "/CORE/js/libs/jquery-2.0.2.min.js");
 
+JSXBridge = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
+JSXBridge.init(__CSI__);
+JSXBridgeTest = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridgeTest.jsx");
+JSXMT = new JSXBridgeTest("JSXMT");
+
+Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
+Debugger.setBridgeName("Debugger");
+DEBUG = debug = new Debugger();
+
 CSInterfaceHelper =  require(__EXTENTION_PATH__ + "/CORE/js/libs/CSInterfaceHelper.js");
 CSHelper = new CSInterfaceHelper(__CSI__);
 
 Environment =  require(__EXTENTION_PATH__ + "/CORE/js/Environment.js");
 ENV = env = new Environment(__CSI__);
-
-Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
-Debugger.setJSXBridgeName("DEBUG");
-Debugger.setCSInterface(__CSI__);
-DEBUG = debug = new Debugger();
 
 JSXHelper2 =  require(__EXTENTION_PATH__ + "/CORE/mixed/_WIP_JSXHelper.jsx");
 JSXHelper2.setJSXBridgeName("JSXH");
@@ -23,16 +27,12 @@ JSXHelper2.setCSInterface(__CSI__);
 JSXH = jsxh = new JSXHelper2();
 
 Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
-CONFIG = config = new Configuration();
+CONFIG = config = new Configuration("CONFIG");
 
 Module = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/Module.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
 ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/ModuleDef.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
 
 
-JSXMirror = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXMirror.jsx");
-JSXMirror.init(__CSI__);
-JSXMirrorTest = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXMirrorTest.jsx");
-JSXMT = new JSXMirrorTest("JSXMT");
 
 
 CORE = (function () {
@@ -120,7 +120,7 @@ CORE = (function () {
 				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.BEGIN",onCoreJsxInitHandler);
 				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.ERROR",onCoreJsxInitHandler);
 				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.END",onCoreJsxInitHandler);
-				CONFIG.synchPush(onConfigSynched);
+				CONFIG.synch(onConfigSynched);
 				break;
 		}
 		
@@ -241,11 +241,8 @@ CORE = (function () {
 		onReady();
 	}
 
-	function onReady() {
-		
-		JSXMT.popup("POPUP FROM JSXMT JS");
-		JSXMT.popin("POPIN FROM JSXMT JS");
-	}
+	
+
 	function buildModules() {
 		DEBUG.channel("core.js").log("buildModules");
 		var n = modulesDef.length;
@@ -336,7 +333,6 @@ CORE = (function () {
 		CSHelper.csInterface.addEventListener("com.adobe.csxs.events.WindowVisibilityChanged",on_CEPEvent_Native_Handler);
 		CSHelper.csInterface.addEventListener("com.adobe.csxs.events.ExtensionLoaded",on_CEPEvent_Native_Handler);
 		CSHelper.csInterface.addEventListener("com.adobe.csxs.events.ExtensionUnloaded",on_CEPEvent_Native_Handler);
-	
 
 		CSHelper.csInterface.addEventListener("afterSave",on_CEPEvent_Native_Handler);
 		CSHelper.csInterface.addEventListener("afterActivate",on_CEPEvent_Native_Handler);
@@ -387,7 +383,9 @@ CORE = (function () {
 			.flush();
 	}
 
-
+	function onReady() {
+		//OK TO GO
+	}
 	
 
 	function cleanJsonString(jsonString) {

@@ -4,11 +4,11 @@
     "DEFAULT_MODULES_AUTO_DETECT_PATH" : "/PLUGIN/modules/",
     "CORE_IMPORTS_JSX" : [
         "CORE/jsx/libs/json2.jsx",
+        "CORE/mixed/JSXBridge.jsx",
         "CORE/mixed/Debugger.jsx",
         "CORE/mixed/Configuration.jsx",
         "CORE/mixed/_WIP_JSXHelper.jsx",
-        "CORE/mixed/JSXMirror.jsx",
-        "CORE/mixed/JSXMirrorTest.jsx",
+        "CORE/mixed/JSXBridgeTest.jsx",
         "CORE/jsx/libs/JSXHelper/JSXHelper.jsx"
 
     ]

@@ -1,76 +1,75 @@
-Configuration = function () {
+Configuration = function (bridgeName) {
     'use strict';
-    this.ctx = (typeof console !== 'undefined') ? "js" : "jsx";
 	this.data = {};
-    var _onPushComplete = null;
-    this.init();
+    this._onSynchComplete = null;
+    this.bridgeName = bridgeName;
+    this.bridge = new JSXBridge(this,bridgeName);
+    //this.bridge.addEventListener("HELP",function (res) {alert("HELP : "+JSON.stringify(res));} );
 }
 
-Configuration.prototype.init = function () {
-        switch (this.ctx) {
-            case "js":
-                break;
-            case "jsx" :
-                //set("super_test","haha");
-                break;
-        }
-    }
+Configuration.prototype.onSynchComplete = function (res) {
+    if (!this._onSynchComplete) return;
+    this._onSynchComplete(res);
+}
 
 Configuration.prototype.update = function(json) {
-        if(!json) return false;
-        for (var key in json) {
-            // Avoid returning these keys from the Associative Array that are stored in it for some reason
-            if (key !== undefined && key !== "toJSONString" && key !== "parseJSON" ) {
-                this.data[key] = json[key];
-            }
+    //alert("update : "+this.bridge.getContext());
+    //this.bridge.dispatchEvent("HELP","from "+this.bridge.getContext());
+    if(!json) return false;
+    if (typeof json == "string") json = JSON.parse(json);
+    for (var key in json) {
+        if (key !== undefined && key !== "toJSONString" && key !== "parseJSON" ) {
+            this.data[key] = json[key];
         }
-        return true;
     }
+    if (this.bridge.checkContext("jsx")) {
+        return JSON.stringify(this.data);
+    } else {
+        return this.data;
+    }
+}
     
 Configuration.prototype.get = function(key) {
-        var value = this.data[key];
-        return value;
-    }
+    var value = this.data[key];
+    return value;
+}
 
 Configuration.prototype.set = function(key,value) {
-        this.data[key] = value;
-    }
+    this.data[key] = value;
+}
 
-Configuration.prototype.synchPush = function(onComplete) {
-        this._onPushComplete = onComplete;
-        var _Self = this;
-        switch (this.ctx) {
-            case "js":
-                var json_string = JSON.stringify(this.data);
-                CSHelper.evaluate('CONFIG.synchPull('+json_string+')',
-                    function(res) {
-                        var json = JSON.parse(res);
-                        _Self.update(json);
-                        _Self._onPushComplete(json);
-                    }
-                );
-                break;
-            case "jsx" :
-                //TODO
-                break;
-        }
-    }
+Configuration.prototype.synch = function(onComplete) {
+    
+    this._onSynchComplete = onComplete;
+    var _self = this;
+    if (this.bridge.checkContext("jsx")) {
+        
+        this.bridge.mirror(
+            'update',
+            this.data,
+            '(function() {\
+                {bridge}.update({args});\
+                {bridge}.onSynchComplete({args});\
+            })();'
+        );
+    } else {
+        this.bridge.mirror(
+            'update',
+            this.data,
+            function(json) {
+                _self.update(json);
+                _self.onSynchComplete(json);
+            }
+        );
+    }  
+}
 
-Configuration.prototype.synchPull = function(json) {
-        switch (this.ctx) {
-            case "js":
-                this.update(json);
-                //TODO
-                break;
-            case "jsx" :
-                this.update(json);
-                return JSON.stringify(this.data);
-                break;
-        }
-    }
-
-Configuration.prototype.getConfigString = function() {
+Configuration.prototype.getDataString = function() {
     return JSON.stringify(this.data);
+}
+
+Configuration.prototype.getData = function() {
+    return this.data;
 }
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {

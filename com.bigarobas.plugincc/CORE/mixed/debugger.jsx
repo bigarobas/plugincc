@@ -1,11 +1,8 @@
 
 
 Debugger = function (id,shouldAlert,shouldWrite,shouldChannelId,parentChannel) {
-
     'use strict';
-
 	if (!Debugger.isInitialized()) Debugger.init();
-
 	this._channel_id = (id == undefined) ? "Debugger" : id;
 	this._isAlertMuted = (shouldAlert == undefined) ? false : !shouldAlert;
 	this._isWriteMuted = (shouldWrite == undefined) ? false : !shouldWrite;
@@ -175,88 +172,59 @@ Debugger.prototype.setSeparator = function (str) {
 	return this;
 }
 
-
-Debugger._ctx = undefined;
-Debugger._jsxBridgeName = undefined;
-Debugger._csInterface = undefined;
+Debugger._bridgeName = "Debugger";
+Debugger._bridge = null;
 Debugger._initialized = false;
 
 Debugger.isInitialized = function() {
 	return Debugger._initialized;
 }
 
-
-Debugger.hasCSInterface = function() {
-	return (Debugger._csInterface != undefined);
+Debugger.hasBridgeName = function() {
+	return (Debugger._bridgeName != undefined);
 }
 
-Debugger.hasJsxBridgeName = function() {
-	return (Debugger._jsxBridgeName != undefined);
-}
-
-Debugger.setCSInterface = function (csi) {
-	Debugger._csInterface = csi;
-}
-
-Debugger.setJSXBridgeName = function (bridgeName) {
-	Debugger._jsxBridgeName = bridgeName;
+Debugger.setBridgeName = function (bridgeName) {
+	Debugger._bridgeName = bridgeName;
+	if (!Debugger._bridge) return;
+	Debugger._bridge.setBridgeName(bridgeName);
 }
 
 Debugger.init = function() {
 	if (Debugger._initialized) return true;
-	Debugger._ctx = (typeof console !== 'undefined') ? "js" : "jsx";
-
-	if (Debugger._ctx == "js") {
-		if (!Debugger.hasCSInterface()) {
-			try {
-				Debugger.setCSInterface(new CSInterface());
-			} catch (e) {
-				Debugger._writeln("Debugger couldn't find CSInterface Class");
-				Debugger._writeln(e);
-			}
-		}
-	} else {
-		
-	}
-
+	Debugger._bridge =  new JSXBridge(this,Debugger._bridgeName); 
 	Debugger._initialized = true;
 }
 
 
 
 Debugger._write = function (message) {
-		if (Debugger._ctx == "jsx") {
-			$.write(message);
-		} else {
-			console.log(message);
-		}
-	}
-
-Debugger._writeln = function (message) {
-		if (Debugger._ctx == "jsx") {
-			$.writeln(message);
-		} else {
-			console.log(message);
-		}
-	}
-
-Debugger._alert = function (message,jsxBridgeName) {
-	Debugger._write("HELLO "+message);
-	if (Debugger._ctx == "jsx") {
-		alert(message);
-	} else {
-		//alert(message);
-		if (typeof Debugger._csInterface !== 'undefined') {
-			if (jsxBridgeName == undefined) jsxBridgeName = Debugger._jsxBridgeName;
-			if (jsxBridgeName != undefined) {
-				var expr = jsxBridgeName+'.popup("'+"[from chrome] \\r"+message+'")';
-				Debugger._csInterface.evalScript(expr);
-			}
-		}
-	}
+    if (this._bridge.checkContext("jsx")) {
+       	$.write(message);
+    } else {
+        console.log(message);
+    } 
 }
 
+Debugger._writeln = function (message) {
+	if (this._bridge.checkContext("jsx")) {
+		$.writeln(message);
+	} else {
+		console.log(message);
+	} 
+}
 
+Debugger._alert = function (message) {
+    if (this._bridge.checkContext("jsx")) {
+        alert(message);
+    } else {
+        this._bridge.mirror(
+            '_alert',
+            "[from chrome] \\r"+message,
+			null
+        );
+    } 
+}
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {
 	module.exports = Debugger;

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="7.0" ExtensionBundleId="com.bigarobas.plugincc.template" ExtensionBundleVersion="1.0.0"
-		ExtensionBundleName="Plugin CC Template" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.bigarobas.plugincc" ExtensionBundleVersion="1.0.0"
+		ExtensionBundleName="Plugin CC Template - DEV" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<ExtensionList>
-		<Extension Id="com.bigarobas.plugincc.template" Version="1.0" />
+		<Extension Id="com.bigarobas.plugincc" Version="1.0" />
 	</ExtensionList>
 	<ExecutionEnvironment>
 		<HostList>
@@ -48,7 +48,7 @@
 		</RequiredRuntimeList>
 	</ExecutionEnvironment>
 	<DispatchInfoList>
-		<Extension Id="com.bigarobas.plugincc.template">
+		<Extension Id="com.bigarobas.plugincc">
 			<DispatchInfo >
 				<Resources>
 				<MainPath>./PLUGIN/html/index.html</MainPath>
@@ -63,7 +63,7 @@
 				</Lifecycle>
 				<UI>
 					<Type>Panel</Type>
-					<Menu>Plugin CC Template</Menu>
+					<Menu>Plugin CC Template - DEV</Menu>
 					<Geometry>
 						<Size>
 							<Height>300</Height>

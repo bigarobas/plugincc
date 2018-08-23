@@ -141,7 +141,6 @@ Debugger.prototype.json = function (message) {
 }
 
 Debugger.prototype.dispatch = function (message) {
-	console.log("dispatch "+message,this.canAlert(),this.canWrite());
 	if (this.canAlert()) { this.popup(message); }
 	if (this.canWrite()) { this.writeln(message); }
 	return this;
@@ -242,6 +241,7 @@ Debugger._writeln = function (message) {
 	}
 
 Debugger._alert = function (message,jsxBridgeName) {
+	Debugger._write("HELLO "+message);
 	if (Debugger._ctx == "jsx") {
 		alert(message);
 	} else {
@@ -250,7 +250,7 @@ Debugger._alert = function (message,jsxBridgeName) {
 			if (jsxBridgeName == undefined) jsxBridgeName = Debugger._jsxBridgeName;
 			if (jsxBridgeName != undefined) {
 				var expr = jsxBridgeName+'.popup("'+"[from chrome] \\r"+message+'")';
-				Debugger._csInterface.evalScript('expr');
+				Debugger._csInterface.evalScript(expr);
 			}
 		}
 	}
@@ -258,7 +258,7 @@ Debugger._alert = function (message,jsxBridgeName) {
 
 
 
-if (typeof console !== 'undefined') {
+if ( typeof module === "object" && typeof module.exports === "object" ) {
 	module.exports = Debugger;
 } 
 

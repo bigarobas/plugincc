@@ -1,31 +1,47 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global $, window, location, CSInterface, SystemPath, themeManager, CSHelper*/
 
-var Module;
-var ModuleDef;
+__CSI__ = new CSInterface();
+__EXTENTION_PATH__ = __CSI__.getSystemPath(SystemPath.EXTENSION);
+
+$ =  require(__EXTENTION_PATH__ + "/CORE/js/libs/jquery-2.0.2.min.js");
+
+CSInterfaceHelper =  require(__EXTENTION_PATH__ + "/CORE/js/libs/CSInterfaceHelper.js");
+CSHelper = new CSInterfaceHelper(__CSI__);
+
+Environment =  require(__EXTENTION_PATH__ + "/CORE/js/Environment.js");
+ENV = env = new Environment(__CSI__);
+
+Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
+Debugger.setJSXBridgeName("DEBUG");
+Debugger.setCSInterface(__CSI__);
+DEBUG = debug = new Debugger();
+
+JSXHelper2 =  require(__EXTENTION_PATH__ + "/CORE/mixed/_WIP_JSXHelper.jsx");
+JSXHelper2.setJSXBridgeName("JSXH");
+JSXHelper2.setCSInterface(__CSI__);
+JSXH = jsxh = new JSXHelper2();
+
+Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
+CONFIG = config = new Configuration();
+
+Module = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/Module.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
+ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/ModuleDef.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
 
 
-DEBUG = debug = Debug = null;
-JSXH = null;
+JSXMirror = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXMirror.jsx");
+JSXMirror.init(__CSI__);
+JSXMirrorTest = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXMirrorTest.jsx");
+JSXMT = new JSXMirrorTest("JSXMT");
+
 
 CORE = (function () {
-    'use strict';
+	'use strict';
+
 	var modules = [];
 	var modulesDef = [];
-	
 	var modules_path;
 
-	switch (ENV.NODE_ES_TYPE) {
-		case "es5":
-			Module = require(CSHelper.csInterface.getSystemPath("extension") + "/CORE/js/modules/es5/Module.js");
-			ModuleDef = require(CSHelper.csInterface.getSystemPath("extension") + "/CORE/js/modules/es5/ModuleDef.js");
-			break;
-		default :
-			Module = require(CSHelper.csInterface.getSystemPath("extension") + "/CORE/js/modules/Module.js");
-			ModuleDef = require(CSHelper.csInterface.getSystemPath("extension") + "/CORE/js/modules/ModuleDef.js");
-			break;
-	}
-	
 	init();
 
 	function init() {
@@ -35,23 +51,15 @@ CORE = (function () {
 	}
 
 	function initLogger() {
-		Debugger.setJSXBridgeName("DEBUG");
-		Debugger.setCSInterface(CSHelper.csInterface);
-		DEBUG = debug = Debug = new Debugger();
 		DEBUG.channel("core.js").setVerbose(true,true,true);
 		DEBUG.channel("csxs_custom_events").setVerbose(false,false,false);
 		DEBUG.channel("csxs_native_events").setVerbose(false,false,false);
 		DEBUG.channel("cep_native_events").setVerbose(false,false,false);
-
-
-		JSXHelper2.setJSXBridgeName("JSXH");
-		JSXHelper2.setCSInterface(CSHelper.csInterface);
-		JSXH = new JSXHelper2();
-		
+		DEBUG.channel("core.js").log("initLogger");
 	}
 
-
 	function loadCoreConfig() {
+		DEBUG.channel("core.js").log("loadCoreConfig");
 		$.getJSON("../../CORE/data/config.json", onCoreConfigLoaded);
 	}
 
@@ -63,6 +71,7 @@ CORE = (function () {
 	}
 
 	function includeCoreJsx() {
+		DEBUG.channel("core.js").log("includeCoreJsx");
 		CSHelper.includeJSXInOrder(CONFIG.get("CORE_IMPORTS_JSX"),onIncludeCoreJsxComplete);
 	}
 
@@ -72,6 +81,7 @@ CORE = (function () {
 	}
 	
 	function loadPluginConfig() {
+		DEBUG.channel("core.js").log("loadPluginConfig");
 		$.getJSON("../../PLUGIN/data/config.json", onPluginConfigLoaded);
 	}
 
@@ -82,18 +92,43 @@ CORE = (function () {
 	}
 
 	function includePluginJsx() {
+		DEBUG.channel("core.js").log("includePluginJsx");
 		CSHelper.includeJSXInOrder(CONFIG.get("PLUGIN_IMPORTS_JSX"),onIncludePluginJsxComplete);
 	}
 
     function onIncludePluginJsxComplete() {
 		DEBUG.channel("core.js").log("onIncludePluginJsxComplete");
-		CONFIG.synchPush(onConfigSynched);
+		initCoreJsx();
 	}
-	
+
+	function initCoreJsx() {
+		DEBUG.channel("core.js").log("initCoreJsx");
+		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.BEGIN",onCoreJsxInitHandler);
+		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.ERROR",onCoreJsxInitHandler);
+		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.END",onCoreJsxInitHandler);
+		CSHelper.evaluate('CORE.init()');
+	}
+
+	function onCoreJsxInitHandler(event) {
+		DEBUG.channel("core.js").log("onCoreJsxInitHandler : ").json(event.type);
+		switch (event.type) {
+			case "CORE.JSX.INIT.BEGIN":
+				break;
+			case "CORE.JSX.INIT.ERROR":
+				break;
+			case "CORE.JSX.INIT.END":
+				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.BEGIN",onCoreJsxInitHandler);
+				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.ERROR",onCoreJsxInitHandler);
+				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.END",onCoreJsxInitHandler);
+				CONFIG.synchPush(onConfigSynched);
+				break;
+		}
+		
+	}
+
 	function onConfigSynched(res) {
 		DEBUG.channel("core.js").log("onConfigSynched : ").json(res);
 		loadModules();
-       
 	}
 
 	function loadModules() {
@@ -112,9 +147,20 @@ CORE = (function () {
 		if (!modules_path) modules_path = CONFIG.get("DEFAULT_MODULES_AUTO_DETECT_PATH");
 		modules_path = ENV.EXTENTION_PATH + modules_path;
 		CSHelper.evaluate('$jsx.getFolderContentJsonFromPath("'+modules_path+'")',onGetModulesFoldersComplete);
+		//TEST FOR NODE VERSION
+		/*
+		var res = ENV.NODE_LIB_FS.readdirSync(modules_path);
+		onGetModulesFoldersComplete(res);
+		*/
 	}
 
 	function onGetModulesFoldersComplete(res) {
+		//TEST FOR NODE VERSION
+		/*
+		var modules_folders = res;
+		modules_folders.splice(modules_folders.indexOf("desktop.ini", 1));
+		//IN LOOP : module_path = modules_path+"/"+modules_folders[i];
+		*/
 		DEBUG.channel("core.js").log("onGetModulesFoldersComplete :").json(res);
 		var modules_folders = JSON.parse(res);
 		var n = modules_folders.length;
@@ -127,7 +173,13 @@ CORE = (function () {
 		
 	}
 
+	function registerModule(id,path) {
+		var def = new ModuleDef(id,path);
+		modulesDef.push(def);
+	}
+
 	function includeModulesJsx() {
+		DEBUG.channel("core.js").log("includeModulesJsx");
 		var n = modulesDef.length;
 		var m;
 		var jsx_paths = [];
@@ -140,37 +192,101 @@ CORE = (function () {
 
 	function onIncludeModulesJsxComplete() {
 		DEBUG.channel("core.js").log("onIncludeModulesJsxComplete");
-		onModulesInitialized();
-	}
-
-	function registerModule(id,path) {
-		var def = new ModuleDef(id,path);
-		modulesDef.push(def);
-	}
-
-	function onModulesInitialized(res) {
-		DEBUG.channel("core.js").log("onModulesInitialized");
 		start();
 	}
     
     function start() {
 		DEBUG.channel("core.js").log("start");
+		initGlobalListeners();
+		startCoreJsx();
+	}
+
+	function initGlobalListeners() {
+		DEBUG.channel("core.js").log("initGlobalListeners");
 		init_CSXSEvent_Native_Listeners();
 		init_CSXSEvent_Custom_Listeners();
 		init_CEPEvent_Native_Listeners();
-		
-		CSHelper.evaluate('CORE.init()');
+	}
+
+	function startCoreJsx() {
+		DEBUG.channel("core.js").log("startCoreJsx");
+		CSHelper.csInterface.addEventListener("CORE.JSX.START.BEGIN",onCoreJsxStartHandler);
+		CSHelper.csInterface.addEventListener("CORE.JSX.START.ERROR",onCoreJsxStartHandler);
+		CSHelper.csInterface.addEventListener("CORE.JSX.START.END",onCoreJsxStartHandler);
 		CSHelper.evaluate('CORE.start()');
-		CSHelper.evaluate('ModuleA.test()');
+	}
 
-		//JSXH.popup("SUPER TEST FROM JS");
+	function onCoreJsxStartHandler(event) {
+		DEBUG.channel("core.js").log("onCoreJsxStartHandler : ").json(event.type);
+		switch (event.type) {
+			case "CORE.JSX.START.BEGIN":
+				break;
+			case "CORE.JSX.START.ERROR":
+				break;
+			case "CORE.JSX.START.END":
+				CSHelper.csInterface.removeEventListener("CORE.JSX.START.BEGIN",onCoreJsxStartHandler);
+				CSHelper.csInterface.removeEventListener("CORE.JSX.START.ERROR",onCoreJsxStartHandler);
+				CSHelper.csInterface.removeEventListener("CORE.JSX.START.END",onCoreJsxStartHandler);
+				launchModules();
+				break;
+		}
+		
+	}
 
+	function launchModules() {
+		DEBUG.channel("core.js").log("launchModules");
 		buildModules();
 		initModules();
 		startModules();
+		onReady();
+	}
 
+	function onReady() {
+		
+		JSXMT.popup("POPUP FROM JSXMT JS");
+		JSXMT.popin("POPIN FROM JSXMT JS");
+	}
+	function buildModules() {
+		DEBUG.channel("core.js").log("buildModules");
+		var n = modulesDef.length;
+		var def;
+		var m;
+		for (var i=0;i<n;i++) {
+			def = modulesDef[i];
+			m = def.build();
+			modules.push(m);
+		}
+		onBuildModulesComplete();
+	}
+
+	function onBuildModulesComplete() { DEBUG.channel("core.js").log("onBuildModulesComplete"); }
+
+	function initModules() {
+		DEBUG.channel("core.js").log("initModules");
+		var n = modules.length;
+		var m;
+		for (var i=0;i<n;i++) {
+			m = modules[i];
+			m.init();
+		}
+		onInitModulesComplete();
+	}
+
+	function onInitModulesComplete() { DEBUG.channel("core.js").log("onInitModulesComplete"); }
+
+	function startModules() {
+		DEBUG.channel("core.js").log("startModules");
+		var n = modules.length;
+		var m;
+		for (var i=0;i<n;i++) {
+			m = modules[i];
+			m.start();
+		}
+		onStartModulesComplete();
 		
 	}
+
+	function onStartModulesComplete() { DEBUG.channel("core.js").log("onStartModulesComplete"); }
 
 	function init_CSXSEvent_Native_Listeners() {
 		CSHelper.csInterface.addEventListener("CSXSEvent_Native", on_CSXSEvent_Native_Handler);
@@ -272,47 +388,7 @@ CORE = (function () {
 	}
 
 
-	function buildModules() {
-		DEBUG.channel("core.js").log("buildModules");
-		var n = modulesDef.length;
-		var def;
-		var m;
-		for (var i=0;i<n;i++) {
-			def = modulesDef[i];
-			m = def.build();
-			modules.push(m);
-		}
-		onBuildModulesComplete();
-	}
-
-	function onBuildModulesComplete() { DEBUG.channel("core.js").log("onBuildModulesComplete"); }
-
-	function initModules() {
-		DEBUG.channel("core.js").log("initModules");
-		var n = modules.length;
-		var m;
-		for (var i=0;i<n;i++) {
-			m = modules[i];
-			m.init();
-		}
-		onInitModulesComplete();
-	}
-
-	function onInitModulesComplete() { DEBUG.channel("core.js").log("onInitModulesComplete"); }
-
-	function startModules() {
-		DEBUG.channel("core.js").log("startModules");
-		var n = modules.length;
-		var m;
-		for (var i=0;i<n;i++) {
-			m = modules[i];
-			m.start();
-		}
-		onStartModulesComplete();
-		
-	}
-
-	function onStartModulesComplete() { DEBUG.channel("core.js").log("onStartModulesComplete"); }
+	
 
 	function cleanJsonString(jsonString) {
 		var regex = new RegExp(/\\"/g);

@@ -1,11 +1,7 @@
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, Folder*/
-
-//FIRST JSX TO BE LOADED 
-//THERE IS NO OTHER CORE CONST AVAILABLE YET
-
-DEBUG = debug = Debug = null;
-JSXH = null;
+DEBUG = debug = null;
+JSXH = jsx = null;
+CONFIG = config = null;
+JSXMT = null;
 
 CORE = (function () {
     'use strict';
@@ -13,10 +9,12 @@ CORE = (function () {
         var PlugPlugExternalObjectLib;
 
         function init() {
+            dispatchCustomEvent("CORE.JSX.INIT.BEGIN");
             initLogger();
             initPlugPlugExternalObjectLib();
-            dispatchCustomEvent("CORE.JSX.INIT");
-            DEBUG.channel('core.jsx').log("initialized");
+            initConfig(); 
+            DEBUG.channel('core.jsx').log("init");
+            dispatchCustomEvent("CORE.JSX.INIT.END");
         }
 
         function initLogger() {
@@ -24,7 +22,14 @@ CORE = (function () {
             DEBUG.channel('core.jsx').setVerbose(true,true,true);
         
             JSXH = new JSXHelper2();
-            //JSXH.popup("SUPER TEST FROM JSX");
+            JSXMT = new JSXMirrorTest("JSXMT");
+            JSXMT.popup("POPUP FROM JSXMT JSX");
+		    JSXMT.popin("POPIN FROM JSXMT JSX");
+
+        }
+
+        function initConfig() {
+            CONFIG = config = new Configuration();
         }
 
         function initPlugPlugExternalObjectLib() {
@@ -33,12 +38,13 @@ CORE = (function () {
             } catch (e) { 
                 alert(e) 
             }
-            DEBUG.channel('core.jsx').log("initPlugPlugExternalObjectLib : "+PlugPlugExternalObjectLib);
+            DEBUG.channel('core.jsx').log("initPlugPlugExternalObjectLib : ").json(PlugPlugExternalObjectLib);
         }
 
         function start() {
-            dispatchCustomEvent("CORE.JSX.START");
+            dispatchCustomEvent("CORE.JSX.START.BEGIN");
             DEBUG.channel('core.jsx').log("started");
+            dispatchCustomEvent("CORE.JSX.START.END");
         }
         
         function test() {
@@ -46,7 +52,7 @@ CORE = (function () {
         }
 
         function includeJSX(path) {
-            if (JSXH != null) return JSXH.includeJSX(path); //TODO RETHINK DEPENDENCY
+            //if (JSXH != null) return JSXH.includeJSX(path); //TODO RETHINK DEPENDENCY
 
              try {
                 var res = $.evalFile(path);
@@ -75,32 +81,39 @@ CORE = (function () {
 
         
 
-        function onAppEventHandler(event) {
-            var type = event.eventType;
-            var evt = {};
-            evt.type = type;
-            dispatchNativeEvent(evt);
+        function onAppEventHandler(nativeEvent) {
+            var type = nativeEvent.eventType;
+            var event = {};
+            event.type = type;
+            dispatchNativeEvent(event);
         }
 
-        function dispatchNativeEvent(event) {
-            var eventObj = new CSXSEvent();
-            eventObj.type = "CSXSEvent_Native";
-            eventObj.data = JSON.stringify(event);
-            eventObj.dispatch();
+        function dispatchNativeEvent(nativeEvent) {
+            var event = new CSXSEvent();
+            event.type = "CSXSEvent_Native";
+            event.data = JSON.stringify(nativeEvent);
+            event.dispatch();
         }
 
-        function encapsulateEventAndDispatch(event) {
-            var eventObj = new CSXSEvent();
-            eventObj.type = "CSXSEvent_Custom";
-            eventObj.data = (!event) ? {} : JSON.stringify(event);
-            eventObj.dispatch();
+        function encapsulateCommandAndDispatch(cmd) {
+            var event = new CSXSEvent();
+            event.type = "CSXSEvent_Custom";
+            event.data = (!cmd) ? {} : JSON.stringify(cmd);
+            event.dispatch();
+        }
+
+        function dispatchCommand(type,data) {
+            var event = new CSXSEvent();
+            event.type = type;
+            event.data = (!data) ? JSON.stringify({type:type}) : JSON.stringify(data);
+            encapsulateCommandAndDispatch(event);
         }
 
         function dispatchCustomEvent(type,data) {
-            var dataEvent = new CSXSEvent();
-            dataEvent.type = type;
-            dataEvent.data = (!data) ? JSON.stringify({type:type}) : JSON.stringify(data);
-            encapsulateEventAndDispatch(dataEvent);
+           var event = new CSXSEvent();
+            event.type = type;
+            event.data = (!data) ? JSON.stringify({type:type}) : JSON.stringify(data);
+            event.dispatch();
         }
 
         function createEventListeners() {

@@ -36,6 +36,7 @@ JSXHelper =
 		var content = getFolderContent(folder);
         var res = [];
         for (var i = 0 ; i < content.length ; i++) {
+            if (content[i].name=="desktop.ini") continue; //TODO make it configurable;
             res.push(content[i].fullName);
         }
         res = JSON.stringify(res);

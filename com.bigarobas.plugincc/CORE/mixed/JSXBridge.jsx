@@ -1,17 +1,75 @@
-JSXBridge = function(target,bridgeName) {
+//####################################################
+// JSXBridgeEvent
+//####################################################
+
+JSXBridgeEvent = function (type,data,scope) {
+    this.type = type;
+    this.data = data;
+    this.context = JSXBridge.getContext();
+    this.bridge = null;
+    this.bridgeName = null;
+    if (!scope) scope = JSXBridgeEventScope.MIRROR;
+    this.scope = scope;
+}
+
+JSXBridgeEvent.MIRROR_FROM_JSX = "JSXBridgeEvent_MIRROR_FROM_JSX";
+
+JSXBridgeEvent.createFromString = function (event_string){
+    var parsed = JSON.parse(event_string);
+    var event = new JSXBridgeEvent(parsed.type,parsed.data,parsed.scope);
+    event.context = parsed.context;
+    event.bridge = parsed.bridge;
+    event.bridgeName = parsed.bridgeName;
+    return event;
+}
+
+JSXBridgeEvent.prototype.clone = function () {
+    var event  = new JSXBridgeEvent(this.type,this.data,this.scope);
+    event.context = this.context;
+    event.bridge = this.bridge;
+    event.bridgeName = this.bridgeName;
+    return event;
+}
+
+JSXBridgeEvent.prototype.mirrorClone = function () {
+    var event  = new JSXBridgeEvent(this.type,this.data,this.scope);
+    event.context = this.context;
+    event.bridge = "";
+    event.bridgeName = this.bridgeName;
+    return event;
+}
+
+JSXBridgeEvent.prototype.stringClone = function () {
+    var clone = this.clone();
+    clone.bridge = "";
+    return JSON.stringify(clone);
+}
+
+JSXBridgeEvent.prototype.toString = function() {
+    return this.stringClone();
+}
+
+//####################################################
+// JSXBridgeEventScope
+//####################################################
+
+JSXBridgeEventScope  = {};
+JSXBridgeEventScope.JS = "js";
+JSXBridgeEventScope.JSX = "jsx";
+JSXBridgeEventScope.MIRROR = "mirror";
+JSXBridgeEventScope.BOTH = "both";
+JSXBridgeEventScope.SAME = "same";
+
+//####################################################
+// JSXBridge
+//####################################################
+
+JSXBridge = function(client,bridgeName) {
     if (!JSXBridge.isInitialized()) JSXBridge.init();
-    this.target = target;
+    this.client = client;
     this.bridgeName = bridgeName;
     JSXBridge.register(this);
 }
-
-JSXBridgeEvent = function (type,data) {
-    this.type = type;
-    this.data = data;
-}
-
-JSXBridgeEvent.REFLECT_FROM_JSX = "JSXBridge_event_reflect_from_jsx";
-JSXBridgeEvent.REFLECT_FROM_JS = "JSXBridge_event_reflect_from_js";
 
 JSXBridge._ctx = undefined;
 JSXBridge._csInterface = undefined;
@@ -20,11 +78,13 @@ JSXBridge._bridge = null;
 JSXBridge._initialized = false;
 JSXBridge._mirrorsMap = [];
 JSXBridge._mirrorsArray = [];
-JSXBridge._eventHandlers = [];
+JSXBridge._bridgeEventHandlers = [];
 
 JSXBridge.init = function(csi) {
 	if (JSXBridge._initialized) return true;
 	JSXBridge._ctx = (typeof console !== 'undefined') ? "js" : "jsx";
+    JSXBridge._initialized = true;
+    JSXBridge._bridge =  new JSXBridge(this,JSXBridge._bridgeName); 
 	if (JSXBridge.checkContext("jsx")) {
         if (typeof CSXSEvent == 'undefined') {
             try {
@@ -49,37 +109,26 @@ JSXBridge.init = function(csi) {
                 JSXBridge.setCSInterface(csi);
             }
 		}
-        JSXBridge._initialized = true;
-        JSXBridge._bridge =  new JSXBridge(this,JSXBridge._bridgeName); 
-        JSXBridge.initJSListeners();
+        JSXBridge._csInterface.addEventListener(JSXBridgeEvent.MIRROR_FROM_JSX,JSXBridge.on_MIRROR_FROM_JSX)
     }
 
-	
     return true;
 }
 
-
-
-JSXBridge.initJSListeners = function() {
-	if (!JSXBridge.hasCSInterface()) return;
-    JSXBridge._csInterface.addEventListener(JSXBridgeEvent.REFLECT_FROM_JSX,JSXBridge.on_REFLECT_FROM_JSX)
-}
-
-JSXBridge.on_REFLECT_FROM_JSX = function (event) {
+JSXBridge.on_MIRROR_FROM_JSX = function (event) {
     var bridgeName = event.data.bridgeName;
     var mirror = JSXBridge._mirrorsMap[bridgeName];
     if (!mirror) return false;
     var functionName = event.data.functionName;
-    var bridgeFunction =  mirror.target[functionName];
+    var bridgeFunction =  mirror.client[functionName];
     if (!bridgeFunction) return false;
     var functionArgs = event.data.functionArgs;
-    var bridgeCallResult = bridgeFunction.call(mirror.target,functionArgs);
+    var bridgeCallResult = bridgeFunction.call(mirror.client,functionArgs);
     if (!event.data.callbackExpression) return false;
     var callbackExpression = event.data.callbackExpression;
     if (!callbackExpression) return false;
     var regex = new RegExp(/{bridge}/g);
 	callbackExpression = callbackExpression.replace(regex,bridgeName);
-    
 	regex = new RegExp(/{args}/g);
 	callbackExpression = callbackExpression.replace(regex,JSXBridge.argsToString(bridgeCallResult));
     JSXBridge._csInterface.evalScript(callbackExpression);
@@ -108,7 +157,6 @@ JSXBridge.setBridgeName = function (bridgeName) {
 JSXBridge.hasCSInterface = function() {
 	return (JSXBridge._csInterface != undefined);
 }
-
 
 JSXBridge.setCSInterface = function (csi) {
 	JSXBridge._csInterface = csi;
@@ -143,37 +191,9 @@ JSXBridge.getContext = function () {
     return JSXBridge._ctx;
 }
 
-JSXBridge.addEventListener = function (type,handler) {
-    if (JSXBridge.checkContext("jsx")) {
-    } else {
-        return JSXBridge._csInterface.addEventListener(type,handler);
-    }
-}
-
-JSXBridge.watchEventType = function (type) {
-    if (JSXBridge.checkContext("jsx")) {
-    } else {
-        return JSXBridge._csInterface.addEventListener(type,JSXBridge.onWatchEvent);
-    }
-}
-
-JSXBridge.unWatchEventType = function (type) {
-    if (JSXBridge.checkContext("jsx")) {
-    } else {
-        return JSXBridge._csInterface.removeEventListener(type,JSXBridge.onWatchEvent);
-    }
-}
-
-JSXBridge.onWatchEvent = function (event) {
-    if (JSXBridge.checkContext("jsx")) {
-    } else {
-        JSXBridge.dispatchEventAmongListeners(event);
-    }
-}
-
-JSXBridge.dispatchEventAmongListeners = function (event) {
+JSXBridge._dispatchBridgeEventAmongListeners = function (event) {
     var type = event.type;
-    var handlersList = JSXBridge.getOrCreateHandlersList(type);
+    var handlersList = JSXBridge.getOrCreateBridgeEventHandlersList(type);
     var listener;
     var i = handlersList.length;
     while (i--) {
@@ -182,62 +202,114 @@ JSXBridge.dispatchEventAmongListeners = function (event) {
     } 
 }
 
+JSXBridge._dispatchBridgeEventAmongListenersFromString = function (string_event) {
+    var event = JSXBridgeEvent.createFromString(string_event);
+    JSXBridge._dispatchBridgeEventAmongListeners(event);
+}
+
 JSXBridge.registerAsListener = function (bridge,type,handler) {
-    var handlerList = JSXBridge.getOrCreateHandlersList(type);
-    handlerList.push({target:bridge,handler:handler});
+    var handlersList = JSXBridge.getOrCreateBridgeEventHandlersList(type);
+    handlersList.push({bridge:bridge,handler:handler});
 }
 
 JSXBridge.unRegisterAsListener = function (bridge,type,handler) {
-    var handlersList = JSXBridge.getOrCreateHandlersList(type);
+    var handlersList = JSXBridge.getOrCreateBridgeEventHandlersList(type);
     var listener;
     var i =  handlersList.length;
     while (i--) {
         listener = handlersList[i];
-            if (listener.target == bridge && listener.handler == handler) { 
+            if (listener.bridge == bridge && listener.handler == handler) { 
             handlersList.splice(i, 1);
         } 
     }
 }
 
-JSXBridge.removeEventListener = function (type,handler) {
-	if (JSXBridge.checkContext("jsx")) {
+JSXBridge.dispatchBridgeEvent = function (bridgeEvent) {
+    if (JSXBridge.checkContext("jsx")) {
+        if (bridgeEvent.scope == JSXBridgeEventScope.JSX || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
+           JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
+        }
+        if (bridgeEvent.scope != JSXBridgeEventScope.JSX && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
+           
+            JSXBridge.mirror_from_jsx(
+                JSXBridge._bridge,
+                '_dispatchBridgeEventAmongListeners',
+                bridgeEvent.mirrorClone()
+            );
+        }
     } else {
-        return JSXBridge._csInterface.removeEventListener(type,handler);
+        if (bridgeEvent.scope == JSXBridgeEventScope.JS || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
+           JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
+        }
+        if (bridgeEvent.scope != JSXBridgeEventScope.JS && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
+            JSXBridge.mirror_from_js(
+                JSXBridge._bridge,
+                '_dispatchBridgeEventAmongListeners',
+                bridgeEvent.mirrorClone()
+            );
+        }
     }
 }
 
-JSXBridge.dispatchEvent = function (type,data) {
+JSXBridge.createBridgeEvent = function (type,data,scope) {
+    var event =  new JSXBridgeEvent(type,data,scope);
+    return event;
+}
 
-    var bridgeEvent = new JSXBridgeEvent(type,data);
-    JSXBridge.dispatchEventAmongListeners(bridgeEvent);
 
+JSXBridge.getOrCreateBridgeEventHandlersList = function(type) {
+    var handlersList = JSXBridge._bridgeEventHandlers[type];
+     if (!handlersList) JSXBridge._bridgeEventHandlers[type] = [];
+     return JSXBridge._bridgeEventHandlers[type];
+}
+
+JSXBridge.mirror = function (bridge,function_name,function_args,callback_or_expression) {
+	if (JSXBridge.checkContext("jsx")) {
+            JSXBridge.mirror_from_jsx(bridge,function_name,function_args,callback_or_expression);
+    } else {
+            JSXBridge.mirror_from_js(bridge,function_name,function_args,callback_or_expression);
+    }
+}
+
+JSXBridge.mirror_from_jsx = function(bridge,function_name,function_args,callback_or_expression) {
+    var args_str = JSXBridge.argsToString(function_args);
+    var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
+    var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
+    var data = JSON.stringify({
+        bridgeName : bridge.bridgeName,
+        functionName : function_name,
+        functionArgs : function_args,
+        callbackExpression : callback_expression
+    });
 	if (JSXBridge.checkContext("jsx")) {
         var event = new CSXSEvent();
-        event.type = type;
-        event.data = JSON.stringify(data);
+        event.type = JSXBridgeEvent.MIRROR_FROM_JSX,
+        event.data = data;
         event.dispatch();
-    } else {
-        var event = new CSEvent();
-        event.type = type;
-        event.data = JSON.stringify(data);
-        JSXBridge._csInterface.dispatchEvent(event);
-        
-        JSXBridge._bridge.mirror(
-            'dispatchEventAmongListeners',
-            bridgeEvent,
-            function(res) {
-                console.log("JSXBridge.dispatchEvent "+res);
-            }
-        )
+        return true;
     }
-    
+    return false;
 }
 
-JSXBridge.getOrCreateHandlersList = function(type) {
-    var handlerList = JSXBridge._eventHandlers[type];
-     if (!handlerList) JSXBridge._eventHandlers[type] = [];
-     return JSXBridge._eventHandlers[type];
+JSXBridge.mirror_from_js = function(bridge,function_name,function_args,callback_or_expression) {
+    var args_str = JSXBridge.argsToString(function_args);
+    var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
+    var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
+	if (JSXBridge.checkContext("js")) {
+         if (typeof JSXBridge._csInterface !== 'undefined') {
+			if (bridge.bridgeName != undefined) {
+				var expr = bridge.bridgeName+'.'+function_name+'('+args_str+')';
+				JSXBridge._csInterface.evalScript(expr,callback_function);
+			}
+		}
+        return true;
+    }
+    return false;
 }
+
+//####################################################
+// JSXBridge prototype
+//####################################################
 
 JSXBridge.prototype.getContext = function () {
     return JSXBridge.getContext();
@@ -260,42 +332,26 @@ JSXBridge.prototype.getBridgeName = function () {
 	return this.bridgeName;
 }
 
-JSXBridge.prototype.addEventListener = function (type,handler) {
+JSXBridge.prototype.addBridgeEventListener = function (type,handler) {
 	return JSXBridge.registerAsListener(this,type,handler);
 }
 
-JSXBridge.prototype.removeEventListener = function (type,handler) {
+JSXBridge.prototype.removeBridgeEventListener = function (type,handler) {
 	return JSXBridge.unRegisterAsListener(this,type,handler);
 }
 
-JSXBridge.prototype.dispatchEvent = function (type,data) {
-	JSXBridge.dispatchEvent(type,data);
+JSXBridge.prototype.dispatchBridgeEvent = function (event) {
+    event.bridge = this;
+    event.bridgeName = this.bridgeName;
+	JSXBridge.dispatchBridgeEvent(event);
 }
 
+JSXBridge.prototype.createBridgeEvent = function (type,data,scope) {
+    return JSXBridge.createBridgeEvent(type,data,scope);
+}
 
 JSXBridge.prototype.mirror = function (function_name,function_args,callback_or_expression) {
-    var args_str = JSXBridge.argsToString(function_args);
-    var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
-    var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
-	if (JSXBridge.checkContext("jsx")) {
-            this.dispatchEvent(
-                JSXBridgeEvent.REFLECT_FROM_JSX,
-                {
-                    bridgeName : this.bridgeName,
-                    functionName : function_name,
-                    functionArgs : function_args,
-                    callbackExpression : callback_expression
-                }
-            );
-    } else {
-        if (typeof JSXBridge._csInterface !== 'undefined') {
-			if (this.bridgeName != undefined) {
-				var expr = this.bridgeName+'.'+function_name+'('+args_str+')';
-                DEBUG.log(this.bridgeName+" bridge expr").log(expr);
-				JSXBridge._csInterface.evalScript(expr,callback_function);
-			}
-		}
-    }
+    JSXBridge.mirror(this,function_name,function_args,callback_or_expression);  
 }
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {

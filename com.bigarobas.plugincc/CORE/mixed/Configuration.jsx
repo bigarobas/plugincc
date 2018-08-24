@@ -4,7 +4,16 @@ Configuration = function (bridgeName) {
     this._onSynchComplete = null;
     this.bridgeName = bridgeName;
     this.bridge = new JSXBridge(this,bridgeName);
-    //this.bridge.addEventListener("HELP",function (res) {alert("HELP : "+JSON.stringify(res));} );
+    var _self = this;
+    this.bridge.addBridgeEventListener("TEST",
+        function (event) {
+            alert( _self.bridge.getContext() + " : " + event.context);
+            alert( event.data.a + " , " + event.data.b);  
+        } 
+    );
+    
+    //var event = this.bridge.createBridgeEvent("TEST",{a:"mon message",b:"mon prix"},"both");
+    //this.bridge.dispatchBridgeEvent(event);
 }
 
 Configuration.prototype.onSynchComplete = function (res) {
@@ -13,8 +22,6 @@ Configuration.prototype.onSynchComplete = function (res) {
 }
 
 Configuration.prototype.update = function(json) {
-    //alert("update : "+this.bridge.getContext());
-    //this.bridge.dispatchEvent("HELP","from "+this.bridge.getContext());
     if(!json) return false;
     if (typeof json == "string") json = JSON.parse(json);
     for (var key in json) {
@@ -39,7 +46,6 @@ Configuration.prototype.set = function(key,value) {
 }
 
 Configuration.prototype.synch = function(onComplete) {
-    
     this._onSynchComplete = onComplete;
     var _self = this;
     if (this.bridge.checkContext("jsx")) {

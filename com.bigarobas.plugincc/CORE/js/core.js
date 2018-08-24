@@ -1,6 +1,3 @@
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, window, location, CSInterface, SystemPath, themeManager, CSHelper*/
-
 __CSI__ = new CSInterface();
 __EXTENTION_PATH__ = __CSI__.getSystemPath(SystemPath.EXTENSION);
 
@@ -8,8 +5,6 @@ $ =  require(__EXTENTION_PATH__ + "/CORE/js/libs/jquery-2.0.2.min.js");
 
 JSXBridge = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
 JSXBridge.init(__CSI__);
-JSXBridgeTest = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridgeTest.jsx");
-JSXMT = new JSXBridgeTest("JSXMT");
 
 Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
 Debugger.setBridgeName("Debugger");
@@ -31,8 +26,6 @@ CONFIG = config = new Configuration("CONFIG");
 
 Module = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/Module.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
 ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/ModuleDef.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
-
-
 
 
 CORE = (function () {

@@ -1,7 +1,6 @@
 DEBUG = debug = null;
-JSXH = jsx = null;
+JSXH = jsxh = null;
 CONFIG = config = null;
-JSXMT = null;
 
 CORE = (function () {
     'use strict';
@@ -22,13 +21,7 @@ CORE = (function () {
             DEBUG = debug = Debug = new Debugger();
             DEBUG.channel('core.jsx').setVerbose(true,true,true);
         
-            JSXH = new JSXHelper2();
-            
-            JSXMT = new JSXBridgeTest("JSXMT");
-            /*
-            JSXMT.popup("POPUP FROM JSXMT JSX");
-		    JSXMT.popin("POPIN FROM JSXMT JSX");
-            */
+            //JSXH = new JSXHelper2();
 
         }
 

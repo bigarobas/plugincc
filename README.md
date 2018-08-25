@@ -175,7 +175,7 @@ DEBUG.channel("some_channel_name")
 
 ## JSXHelper(s)
 A collection of handy functions for some  Adobe CC applications :
-(This still needs serious cleaning / harmonizeing / testing)
+(This still needs serious cleaning / harmonizing / old projects great functions hunting / testing)
 - JSXHelper             (global functions for all applications)
 - JSXHelper_AEFT.jsx    (After Effects functions)
 - JSXHelper_PHSP.jsx    (Photoshop functions)

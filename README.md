@@ -61,12 +61,26 @@ The JS bridge will receive only **1 event** with "a_custom_event_type".
   
 // ON BOTH SIDES
 CONFIG = new Configuration("CONFIG");
-CONFIG.update(json); //update with some json. existing keys are updated / non existing keys are created
+CONFIG.update(json); // update with some json. existing keys are updated / non existing keys are created
 CONFIG.set("some_key",some_value); // set a value to a key
 CONFIG.get("some_key"); // get a value of a key
-CONFIG.synch(); //this is the most interresting part. Synch the config with the other context (JSX if you are in JS and JS if you're in JSX). For now the synch is a push priority that means that the values are pushed to the the other side (existing keys are updated / non existing keys are created) then pulled to synch. We might have the other option too in the future = pull priority = the values are pulled from the other side (existing keys are updated / non existing keys are created) then pushed to synch.
-
+CONFIG.synch(); // synch the config with the other context
 ```
+synch() is the most interresting part :
+
+It synchronizes the config with the other context (JSX if you are in JS and JS if you're in JSX).
+
+For now the synch is a "push prioritised".
+This means that the values are pushed to the the other side.
+Existing keys are updated / non existing keys are created.
+Then key/values are pulled to synch. 
+Existing keys are updated (which should not happen) / non existing keys are created.
+
+We might have the other option "pull prioritised" too in the future.
+This means the key/values are pulled from the other context.
+Existing keys are updated / non existing keys are created.
+Then key/values are pushed to synch.
+Existing keys are updated (which should not happen) / non existing keys are created.
 
 ## Debugger
 - 1 file for both sides of the force (js / jsx)

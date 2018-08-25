@@ -53,7 +53,7 @@ The JS bridge will receive only 1 event with "a_custom_event_type".
 ```
 ## Configuration
 - 1 file for both sides of the force (js / jsx)
-```
+```javascript
 //IMPORTING THE MODULE
   // JS SIDE
   Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
@@ -86,71 +86,71 @@ Existing keys are updated (which should not happen) / non existing keys are crea
 
 ## Debugger
 - 1 file for both sides of the force (js / jsx)
-```
-//IMPORTING THE MODULE
+```javascript
+// IMPORTING THE MODULE
   // JS SIDE
   Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
   // JSX SIDE
   $.evalFile(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
   
-//UNSING THE MODULE (ON BOTH SIDE)
+// USING THE MODULE (ON BOTH SIDE)
 DEBUG = new Debugger();
 DEBUG.log("Hello World");
 ```
 - create channels and sub channels :
-```
+```javascript
 DEBUG.channel("main_channel_branch_name").channel("sub_channel_branch_name").log("Hello World");
 ```
 - manage / costumise channels :
-```
+```javascript
 DEBUG.channel("main_channel_branch_name").mute(isCompletelyMuted);
 DEBUG.channel("main_channel_branch_name").setVerbose(isWriteMuted,isAlertMutedn,isChannelIdPrefixDisplayed); 
 DEBUG.channel("main_channel_branch_name").setSeparator("-._.-._.-._.-._.-._.-._.-._.-._.-._.-");
 ```
 - supporting multiple write & alert methodes :
   - write(message) 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").write("Hello World");
   // JSX : $.write / JS : console.log
   ```
   - writeln(message) 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").writeln("Hello World");
   // JSX : $.writeln / JS : console.log
   ```
   - log(message) 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").log("Hello World");
   // JSX : $.writeln / JS : console.log
   // the same than .writeln()
   ```
   - json(someObject) 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").json(someObject);
   // .writeln() + JSON.stringify()
   ```
   - popup(message) 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").popup(message);
   // application alert - event if called from panel side (js)
   ```
   - popupJson 
-  ```
+  ```javascript
   DEBUG.channel("some_channel_name").json(someObject);
   // .popup() + JSON.stringify()
   ```
 - stack / flush
-```
+```javascript
 DEBUG.channel("some_channel_name").stack("Hello");
-(...) some code
+// (some code)
 DEBUG.channel("some_channel_name").stack("How");
-(...) some code
+// (some code)
 DEBUG.channel("some_channel_name").stack("Are");
-(...) some code
+// (some code)
 DEBUG.channel("some_channel_name").stack("You");
-(...) some code
+// (some code)
 DEBUG.channel("some_channel_name").stack("?");
-(...) some code
+// (some code)
 DEBUG.channel("some_channel_name").flush();
 
 // log formatted stack :

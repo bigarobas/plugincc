@@ -5,15 +5,15 @@ class Module {
 
     }
     test () {
-        DEBUG.log (this.name + " : "+this.id);
+        DEBUG.channel("module").log(this.name + " : "+this.id);
     }
 
     init () {
-        DEBUG.log (this.name + " : "+this.id + " init");
+        DEBUG.channel("module").log(this.name + " : "+this.id + " init");
     }
 
     start () {
-        DEBUG.log (this.name + " : "+this.id + " start");
+        DEBUG.channel("module").log(this.name + " : "+this.id + " start");
     }
 }
 

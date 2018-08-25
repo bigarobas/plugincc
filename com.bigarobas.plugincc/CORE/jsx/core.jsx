@@ -1,3 +1,11 @@
+/*
+EVENTS : 
+CORE.JSX.INIT.BEGIN
+CORE.JSX.INIT.END
+CORE.JSX.START.BEGIN
+CORE.JSX.START.END
+*/
+
 DEBUG = debug = null;
 JSXH = jsxh = null;
 CONFIG = config = null;
@@ -6,17 +14,23 @@ CORE = (function () {
     'use strict';
 
         var PlugPlugExternalObjectLib;
+        var _bridge = null; 
 
         function init() {
+            initBridge();
+            dispatchBridgeEvent("CORE.JSX.INIT.BEGIN");
+            initDebugger();
             initPlugPlugExternalObjectLib();
-            dispatchCustomEvent("CORE.JSX.INIT.BEGIN");
-            initLogger();
+            
             initConfig(); 
-            DEBUG.channel('core.jsx').log("init");
-            dispatchCustomEvent("CORE.JSX.INIT.END");
+            dispatchBridgeEvent("CORE.JSX.INIT.END");
         }
 
-        function initLogger() {
+        function initBridge() {
+            _bridge = new JSXBridge(this,"CORE"); 
+        }
+
+        function initDebugger() {
             Debugger.setBridgeName("Debugger");
             DEBUG = debug = Debug = new Debugger();
             DEBUG.channel('core.jsx').setVerbose(true,true,true);
@@ -39,13 +53,13 @@ CORE = (function () {
                     return false;
                 }
             }	
-            dispatchCustomEvent("CORE.JSX.PLUGPLUG.INITIALIZED");
+            dispatchBridgeEvent("CORE.JSX.PLUGPLUG.INITIALIZED");
         }
 
         function start() {
-            dispatchCustomEvent("CORE.JSX.START.BEGIN");
+            dispatchBridgeEvent("CORE.JSX.START.BEGIN");
             DEBUG.channel('core.jsx').log("started");
-            dispatchCustomEvent("CORE.JSX.START.END");
+            dispatchBridgeEvent("CORE.JSX.START.END");
         }
         
         function test() {
@@ -80,43 +94,24 @@ CORE = (function () {
             }
         }
 
-        
-
-        function onAppEventHandler(nativeEvent) {
-            var type = nativeEvent.eventType;
-            var event = {};
-            event.type = type;
-            dispatchNativeEvent(event);
+        function dispatchBridgeEvent(type,data,scope) {
+            var event = _bridge.createBridgeEvent(type,data,scope);
+            _bridge.dispatchBridgeEvent(event);
         }
 
-        function dispatchNativeEvent(nativeEvent) {
-            var event = new CSXSEvent();
-            event.type = "CSXSEvent_Native";
-            event.data = JSON.stringify(nativeEvent);
-            event.dispatch();
-        }
+        return ( 
+                {
+                    init : init,
+                    start : start,
+                    includeJSX : includeJSX,
+                    includeJSXFolder : includeJSXFolder,
+                    test : test
+                }
+            );
+    
+}());
 
-        function encapsulateCommandAndDispatch(cmd) {
-            var event = new CSXSEvent();
-            event.type = "CSXSEvent_Custom";
-            event.data = (!cmd) ? {} : JSON.stringify(cmd);
-            event.dispatch();
-        }
-
-        function dispatchCommand(type,data) {
-            var event = new CSXSEvent();
-            event.type = type;
-            event.data = (!data) ? JSON.stringify({type:type}) : JSON.stringify(data);
-            encapsulateCommandAndDispatch(event);
-        }
-
-        function dispatchCustomEvent(type,data) {
-           var event = new CSXSEvent();
-            event.type = type;
-            event.data = (!data) ? JSON.stringify({type:type}) : JSON.stringify(data);
-            event.dispatch();
-        }
-
+        /*
         function createEventListeners() {
             if (!app) return;
             return;
@@ -171,18 +166,22 @@ CORE = (function () {
             app.removeEventListener("afterQuit",onAppEventHandler);
         }
     
-    return ( 
-        {
-            init : init,
-            start : start,
-            includeJSX : includeJSX,
-            includeJSXFolder : includeJSXFolder,
-            dispatchCustomEvent : dispatchCustomEvent,
-            test : test
+        function onAppEventHandler(nativeEvent) {
+            var type = nativeEvent.eventType;
+            var event = {};
+            event.type = type;
+            dispatchNativeEvent(event);
         }
-    );
+
+        function dispatchNativeEvent(nativeEvent) {
+            var event = new CSXSEvent();
+            event.type = "CSXSEvent_Native";
+            event.data = JSON.stringify(nativeEvent);
+            event.dispatch();
+        }
+        */
     
-}());
+    
 
 
 

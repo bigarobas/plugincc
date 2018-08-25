@@ -4,15 +4,15 @@ function Module(id,name) {
 }
   
 Module.prototype.test = function() {
-    DEBUG.log (this.name + " : "+this.id);
+    DEBUG.channel("module").log(this.name + " : "+this.id);
 }
 
 Module.prototype.init =function () {
-    DEBUG.log (this.name + " : "+this.id + " init");
+    DEBUG.channel("module").log(this.name + " : "+this.id + " init");
 }
 
 Module.prototype.start =function () {
-    DEBUG.log (this.name + " : "+this.id + " start");
+    DEBUG.channel("module").log(this.name + " : "+this.id + " start");
 }
 
 

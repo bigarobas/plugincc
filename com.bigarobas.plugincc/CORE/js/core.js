@@ -27,122 +27,215 @@ CONFIG = config = new Configuration("CONFIG");
 Module = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/Module.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
 ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/ModuleDef.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
 
-
 CORE = (function () {
 	'use strict';
 
-	var modules = [];
-	var modulesDef = [];
-	var modules_path;
+	var _modules = [];
+	var _modulesDef = [];
+	var _modules_path;
+	var _bridge;
+	var _events_names = [
+		"CORE.JS.INIT.BEGIN",
+		"CORE.JS.INIT.END",
+		"CORE.JS.MODULES.LOAD.BEGIN",
+		"CORE.JS.MODULES.LOAD.END",
+		"CORE.JS.MODULES.BUILD.BEGIN",
+		"CORE.JS.MODULES.BUILD.END",
+		"CORE.JS.MODULES.INIT.BEGIN",
+		"CORE.JS.MODULES.INIT.END",
+		"CORE.JS.MODULES.START.BEGIN",
+		"CORE.JS.MODULES.START.END",
+		"CORE.JS.CONFIG.CORE.BEGIN",
+		"CORE.JS.CONFIG.CORE.END",
+		"CORE.JS.CONFIG.PLUGIN.BEGIN",
+		"CORE.JS.CONFIG.PLUGIN.END",
+		"CORE.JS.CONFIG.READY",
+		"CORE.JS.START.BEGIN",
+		"CORE.JS.START.END",
+		"CORE.JS.READY"
+	];
 
 	init();
 
 	function init() {
-		initLogger();
-		DEBUG.channel("core.js").log("init");
+		initBridge();
+		dispatchBridgeEvent("CORE.JS.INIT.START");
+		initDebugger();
+		DEBUG.channel("core.js-verbose").log("init");
 		loadCoreConfig();
 	}
 
-	function initLogger() {
-		DEBUG.channel("core.js").setVerbose(true,true,true);
-		DEBUG.channel("csxs_custom_events").setVerbose(false,false,false);
-		DEBUG.channel("csxs_native_events").setVerbose(false,false,false);
-		DEBUG.channel("cep_native_events").setVerbose(false,false,false);
-		DEBUG.channel("core.js").log("initLogger");
+	function initBridge() {
+		_bridge = new JSXBridge(this,"CORE");
+
+		for (var i = 0 ; i<_events_names.length ; i++) 
+			_bridge.addBridgeEventListener(_events_names[i],onBridgeEventHandler);
+
+		_bridge.addBridgeEventListener("CORE.JSX.INIT.BEGIN",onBridgeEventHandler);
+		_bridge.addBridgeEventListener("CORE.JSX.INIT.END",onBridgeEventHandler);
+		_bridge.addBridgeEventListener("CORE.JSX.START.BEGIN",onBridgeEventHandler);
+		_bridge.addBridgeEventListener("CORE.JSX.START.END",onBridgeEventHandler);
 	}
 
-	function loadCoreConfig() {
-		DEBUG.channel("core.js").log("loadCoreConfig");
-		$.getJSON("../../CORE/data/config.json", onCoreConfigLoaded);
-	}
-
-	function onCoreConfigLoaded(json) {
-		DEBUG.channel("core.js").log("onCoreConfigLoaded");
-		CONFIG.update(json);
-		includeCoreJsx();
-		
-	}
-
-	function includeCoreJsx() {
-		DEBUG.channel("core.js").log("includeCoreJsx");
-		CSHelper.includeJSXInOrder(CONFIG.get("CORE_IMPORTS_JSX"),onIncludeCoreJsxComplete);
-	}
-
-	function onIncludeCoreJsxComplete() {
-		DEBUG.channel("core.js").log("onIncludeCoreJsxComplete");
-		loadPluginConfig();
-	}
-	
-	function loadPluginConfig() {
-		DEBUG.channel("core.js").log("loadPluginConfig");
-		$.getJSON("../../PLUGIN/data/config.json", onPluginConfigLoaded);
-	}
-
-	function onPluginConfigLoaded(json) {
-		DEBUG.channel("core.js").log("onPluginConfigLoaded").json(json);
-		CONFIG.update(json);
-		includePluginJsx();
-	}
-
-	function includePluginJsx() {
-		DEBUG.channel("core.js").log("includePluginJsx");
-		CSHelper.includeJSXInOrder(CONFIG.get("PLUGIN_IMPORTS_JSX"),onIncludePluginJsxComplete);
-	}
-
-    function onIncludePluginJsxComplete() {
-		DEBUG.channel("core.js").log("onIncludePluginJsxComplete");
-		initCoreJsx();
-	}
-
-	function initCoreJsx() {
-		DEBUG.channel("core.js").log("initCoreJsx");
-		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.BEGIN",onCoreJsxInitHandler);
-		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.ERROR",onCoreJsxInitHandler);
-		CSHelper.csInterface.addEventListener("CORE.JSX.INIT.END",onCoreJsxInitHandler);
-		CSHelper.evaluate('CORE.init()');
-	}
-
-	function onCoreJsxInitHandler(event) {
-		DEBUG.channel("core.js").log("onCoreJsxInitHandler : ").json(event.type);
+	function onBridgeEventHandler(event) {
+		if (!DEBUG) {
+			console.log(event.bridgeName,event.context,event.type);
+		} else {
+			DEBUG.channel("core.js").log(event.bridgeName+" "+event.context+" "+event.type);
+		}
 		switch (event.type) {
-			case "CORE.JSX.INIT.BEGIN":
+
+			case "CORE.JS.INIT.BEGIN" :
 				break;
-			case "CORE.JSX.INIT.ERROR":
+			
+			case "CORE.JS.CONFIG.CORE.BEGIN" :
 				break;
-			case "CORE.JSX.INIT.END":
-				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.BEGIN",onCoreJsxInitHandler);
-				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.ERROR",onCoreJsxInitHandler);
-				CSHelper.csInterface.removeEventListener("CORE.JSX.INIT.END",onCoreJsxInitHandler);
+			case "CORE.JS.CONFIG.CORE.END" :
+				includeCoreJsx();
+				break;
+			case "CORE.JS.CONFIG.PLUGIN.BEGIN" :
+				break;
+			case "CORE.JS.CONFIG.PLUGIN.END" :
+				break;
+			
+			case "CORE.JS.INIT.END" :
+				CSHelper.evaluate('CORE.init()');
+				break;
+
+			case "CORE.JSX.INIT.BEGIN" :
+				break;
+			case "CORE.JSX.INIT.END" :
 				CONFIG.synch(onConfigSynched);
 				break;
+			
+			case "CORE.JS.CONFIG.READY" :
+				loadModules();
+				break;
+
+			case "CORE.JS.MODULES.LOAD.BEGIN" :
+				break;
+			case "CORE.JS.MODULES.LOAD.END" :
+				start();
+				break;
+
+			case "CORE.JS.START.BEGIN" :
+				break;
+
+			case "CORE.JSX.START.BEGIN" :
+				break;
+			case "CORE.JSX.START.END" :
+				launchModules();
+				break;
+
+			case "CORE.JS.MODULES.BUILD.BEGIN" :
+				break;
+			case "CORE.JS.MODULES.BUILD.END" :
+				break;
+
+			case "CORE.JS.MODULES.INIT.BEGIN" :
+				break;
+			case "CORE.JS.MODULES.INIT.END" :
+				break;
+
+			case "CORE.JS.MODULES.START.BEGIN" :
+				break;
+			case "CORE.JS.MODULES.START.END" :
+				dispatchBridgeEvent("CORE.JS.START.END");
+				dispatchBridgeEvent("CORE.JS.READY");
+				break;
+
+			case "CORE.JS.START.END" :
+				break;
+
+			case "CORE.JS.READY" :
+				break;
+
+			default:
+				break;
+			
 		}
 		
 	}
 
+	function initDebugger() {
+		DEBUG.channel("core.js").mute(false).setVerbose(true,true,true);
+		DEBUG.channel("core.js-verbose").mute(true);
+		DEBUG.channel("core.js-verbose").log("initDebugger");
+		DEBUG.channel("module").mute(true);
+		DEBUG.channel("csxs_custom_events").mute(true);
+		DEBUG.channel("csxs_native_events").mute(true);
+		DEBUG.channel("cep_native_events").mute(true);
+	}
+
+	function loadCoreConfig() {
+		dispatchBridgeEvent("CORE.JS.CONFIG.CORE.BEGIN");
+		DEBUG.channel("core.js-verbose").log("loadCoreConfig");
+		$.getJSON("../../CORE/data/config.json", onCoreConfigLoaded);
+	}
+
+	function onCoreConfigLoaded(json) {
+		DEBUG.channel("core.js-verbose").log("onCoreConfigLoaded");
+		CONFIG.update(json);
+		dispatchBridgeEvent("CORE.JS.CONFIG.CORE.END");
+	}
+
+	function includeCoreJsx() {
+		DEBUG.channel("core.js-verbose").log("includeCoreJsx");
+		CSHelper.includeJSXInOrder(CONFIG.get("CORE_IMPORTS_JSX"),onIncludeCoreJsxComplete);
+	}
+
+	function onIncludeCoreJsxComplete() {
+		DEBUG.channel("core.js-verbose").log("onIncludeCoreJsxComplete");
+		loadPluginConfig();
+	}
+	
+	function loadPluginConfig() {
+		dispatchBridgeEvent("CORE.JS.CONFIG.PLUGIN.BEGIN");
+		DEBUG.channel("core.js-verbose").log("loadPluginConfig");
+		$.getJSON("../../PLUGIN/data/config.json", onPluginConfigLoaded);
+	}
+
+	function onPluginConfigLoaded(json) {
+		DEBUG.channel("core.js-verbose").log("onPluginConfigLoaded").json(json);
+		CONFIG.update(json);
+		dispatchBridgeEvent("CORE.JS.CONFIG.PLUGIN.END");
+		includePluginJsx();
+	}
+
+	function includePluginJsx() {
+		DEBUG.channel("core.js-verbose").log("includePluginJsx");
+		CSHelper.includeJSXInOrder(CONFIG.get("PLUGIN_IMPORTS_JSX"),onIncludePluginJsxComplete);
+	}
+
+    function onIncludePluginJsxComplete() {
+		DEBUG.channel("core.js-verbose").log("onIncludePluginJsxComplete");
+		dispatchBridgeEvent("CORE.JS.INIT.END");
+	}
+
 	function onConfigSynched(res) {
-		DEBUG.channel("core.js").log("onConfigSynched : ").json(res);
-		loadModules();
+		DEBUG.channel("core.js-verbose").log("onConfigSynched : ").json(res);
+		dispatchBridgeEvent("CORE.JS.CONFIG.READY");
 	}
 
 	function loadModules() {
-		DEBUG.channel("core.js").log("initModules");
+		dispatchBridgeEvent("CORE.JS.MODULES.LOAD.BEGIN");
 		var auto = CONFIG.get("PLUGIN_MODULES_AUTO_DETECT");
 		if (auto) {
 			getModulesFolders();
 		} else {
-			start(); // TODO : HANDLE PLUGIN_MODULES_AUTO_DETECT = false
+			// TODO : HANDLE PLUGIN_MODULES_AUTO_DETECT = false
 		}
 		
 	}
 
 	function getModulesFolders() {
-		modules_path = CONFIG.get("PLUGIN_MODULES_AUTO_DETECT_PATH");
-		if (!modules_path) modules_path = CONFIG.get("DEFAULT_MODULES_AUTO_DETECT_PATH");
-		modules_path = ENV.EXTENTION_PATH + modules_path;
-		CSHelper.evaluate('$jsx.getFolderContentJsonFromPath("'+modules_path+'")',onGetModulesFoldersComplete);
+		_modules_path = CONFIG.get("PLUGIN_MODULES_AUTO_DETECT_PATH");
+		if (!_modules_path) _modules_path = CONFIG.get("DEFAULT_MODULES_AUTO_DETECT_PATH");
+		_modules_path = ENV.EXTENTION_PATH + _modules_path;
+		CSHelper.evaluate('$jsx.getFolderContentJsonFromPath("'+_modules_path+'")',onGetModulesFoldersComplete);
 		//TEST FOR NODE VERSION
 		/*
-		var res = ENV.NODE_LIB_FS.readdirSync(modules_path);
+		var res = ENV.NODE_LIB_FS.readdirSync(_modules_path);
 		onGetModulesFoldersComplete(res);
 		*/
 	}
@@ -152,9 +245,9 @@ CORE = (function () {
 		/*
 		var modules_folders = res;
 		modules_folders.splice(modules_folders.indexOf("desktop.ini", 1));
-		//IN LOOP : module_path = modules_path+"/"+modules_folders[i];
+		//IN LOOP : module_path = _modules_path+"/"+modules_folders[i];
 		*/
-		DEBUG.channel("core.js").log("onGetModulesFoldersComplete :").json(res);
+		DEBUG.channel("core.js-verbose").log("onGetModulesFoldersComplete :").json(res);
 		var modules_folders = JSON.parse(res);
 		var n = modules_folders.length;
 		var module_path;
@@ -168,115 +261,84 @@ CORE = (function () {
 
 	function registerModule(id,path) {
 		var def = new ModuleDef(id,path);
-		modulesDef.push(def);
+		_modulesDef.push(def);
 	}
 
 	function includeModulesJsx() {
-		DEBUG.channel("core.js").log("includeModulesJsx");
-		var n = modulesDef.length;
+		DEBUG.channel("core.js-verbose").log("includeModulesJsx");
+		var n = _modulesDef.length;
 		var m;
 		var jsx_paths = [];
 		for (var i=0;i<n;i++) {
-			m = modulesDef[i];
+			m = _modulesDef[i];
 			jsx_paths.push(m.jsxPath);
 		}
 		CSHelper.includeJSXInOrder(jsx_paths,onIncludeModulesJsxComplete);
 	}
 
 	function onIncludeModulesJsxComplete() {
-		DEBUG.channel("core.js").log("onIncludeModulesJsxComplete");
-		start();
+		DEBUG.channel("core.js-verbose").log("onIncludeModulesJsxComplete");
+		dispatchBridgeEvent("CORE.JS.MODULES.LOAD.END");
+		
 	}
     
     function start() {
-		DEBUG.channel("core.js").log("start");
+		dispatchBridgeEvent("CORE.JS.START.BEGIN");
+		DEBUG.channel("core.js-verbose").log("start");
 		initGlobalListeners();
-		startCoreJsx();
-	}
-
-	function initGlobalListeners() {
-		DEBUG.channel("core.js").log("initGlobalListeners");
-		init_CSXSEvent_Native_Listeners();
-		init_CSXSEvent_Custom_Listeners();
-		init_CEPEvent_Native_Listeners();
-	}
-
-	function startCoreJsx() {
-		DEBUG.channel("core.js").log("startCoreJsx");
-		CSHelper.csInterface.addEventListener("CORE.JSX.START.BEGIN",onCoreJsxStartHandler);
-		CSHelper.csInterface.addEventListener("CORE.JSX.START.ERROR",onCoreJsxStartHandler);
-		CSHelper.csInterface.addEventListener("CORE.JSX.START.END",onCoreJsxStartHandler);
 		CSHelper.evaluate('CORE.start()');
 	}
 
-	function onCoreJsxStartHandler(event) {
-		DEBUG.channel("core.js").log("onCoreJsxStartHandler : ").json(event.type);
-		switch (event.type) {
-			case "CORE.JSX.START.BEGIN":
-				break;
-			case "CORE.JSX.START.ERROR":
-				break;
-			case "CORE.JSX.START.END":
-				CSHelper.csInterface.removeEventListener("CORE.JSX.START.BEGIN",onCoreJsxStartHandler);
-				CSHelper.csInterface.removeEventListener("CORE.JSX.START.ERROR",onCoreJsxStartHandler);
-				CSHelper.csInterface.removeEventListener("CORE.JSX.START.END",onCoreJsxStartHandler);
-				launchModules();
-				break;
-		}
-		
+	function initGlobalListeners() {
+		DEBUG.channel("core.js-verbose").log("initGlobalListeners");
+		init_CSXSEvent_Native_Listeners();
+		init_CEPEvent_Native_Listeners();
 	}
 
 	function launchModules() {
-		DEBUG.channel("core.js").log("launchModules");
+		DEBUG.channel("core.js-verbose").log("launchModules");
 		buildModules();
 		initModules();
 		startModules();
-		onReady();
 	}
 
-	
-
 	function buildModules() {
-		DEBUG.channel("core.js").log("buildModules");
-		var n = modulesDef.length;
+		dispatchBridgeEvent("CORE.JS.MODULES.BUILD.BEGIN");
+		var n = _modulesDef.length;
 		var def;
 		var m;
 		for (var i=0;i<n;i++) {
-			def = modulesDef[i];
+			def = _modulesDef[i];
 			m = def.build();
-			modules.push(m);
+			_modules.push(m);
 		}
-		onBuildModulesComplete();
+		dispatchBridgeEvent("CORE.JS.MODULES.BUILD.END");
 	}
-
-	function onBuildModulesComplete() { DEBUG.channel("core.js").log("onBuildModulesComplete"); }
 
 	function initModules() {
-		DEBUG.channel("core.js").log("initModules");
-		var n = modules.length;
+		dispatchBridgeEvent("CORE.JS.MODULES.INIT.BEGIN");
+		var n = _modules.length;
 		var m;
 		for (var i=0;i<n;i++) {
-			m = modules[i];
+			m = _modules[i];
 			m.init();
 		}
-		onInitModulesComplete();
+		dispatchBridgeEvent("CORE.JS.MODULES.INIT.END");
 	}
 
-	function onInitModulesComplete() { DEBUG.channel("core.js").log("onInitModulesComplete"); }
 
 	function startModules() {
-		DEBUG.channel("core.js").log("startModules");
-		var n = modules.length;
+		dispatchBridgeEvent("CORE.JS.MODULES.START.BEGIN");
+		DEBUG.channel("core.js-verbose").log("startModules");
+		var n = _modules.length;
 		var m;
 		for (var i=0;i<n;i++) {
-			m = modules[i];
+			m = _modules[i];
 			m.start();
 		}
-		onStartModulesComplete();
+		dispatchBridgeEvent("CORE.JS.MODULES.START.END");
 		
 	}
-
-	function onStartModulesComplete() { DEBUG.channel("core.js").log("onStartModulesComplete"); }
 
 	function init_CSXSEvent_Native_Listeners() {
 		CSHelper.csInterface.addEventListener("CSXSEvent_Native", on_CSXSEvent_Native_Handler);
@@ -292,20 +354,6 @@ CORE = (function () {
 			.stackJson(encapsulatedData)
 			.flush();
 
-	}
-
-	function init_CSXSEvent_Custom_Listeners() {
-		CSHelper.csInterface.addEventListener("CSXSEvent_Custom", on_CSXSEvent_Custom_Handler);
-	}
-	function on_CSXSEvent_Custom_Handler(event) {
-		DEBUG.channel("csxs_custom_events").log("on_CSXSEvent_Custom_Handler");
-		var encapsulatedEvent = JSON.parse(JSON.stringify(event.data));
-		var encapsulatedData = JSON.parse(cleanJsonString(encapsulatedEvent.data));
-		DEBUG.channel("csxs_custom_events")
-			.stack("on_CSXSEvent_Custom_Handler")
-			.stack(encapsulatedEvent.type)
-			.stackJson(encapsulatedData)
-			.flush();
 	}
 
 	function init_CEPEvent_Native_Listeners() {
@@ -376,8 +424,9 @@ CORE = (function () {
 			.flush();
 	}
 
-	function onReady() {
-		//OK TO GO
+	function dispatchBridgeEvent(type,data,scope) {
+		var event = _bridge.createBridgeEvent(type,data,scope);
+		_bridge.dispatchBridgeEvent(event);
 	}
 	
 
@@ -387,7 +436,7 @@ CORE = (function () {
 		return jsonString;
 	}
 
-	function test() { DEBUG.channel("core.js").log("test"); }
+	function test() { DEBUG.channel("core.js-verbose").log("test"); }
 	
 	return (
 		{	

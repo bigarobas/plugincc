@@ -4,7 +4,7 @@ ModuleA =
 
 	function test () { 
         //alert("ModuleA jsx test");
-        CORE.dispatchCustomEvent("ModuleA Custom Event");
+        //CORE.dispatchCustomEvent("ModuleA Custom Event");
      }
    
     return ( 

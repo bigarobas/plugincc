@@ -6,7 +6,6 @@ class ModuleB extends Module {
     init () {
         super.init();
         $("#btn_test_2").click(function () {
-            DEBUG.dispatch("TEST B");
             CSHelper.evaluate('ModuleB.test()');
         });
     }

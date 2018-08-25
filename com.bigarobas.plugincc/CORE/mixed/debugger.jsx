@@ -1,16 +1,18 @@
 
 
-Debugger = function (id,shouldAlert,shouldWrite,shouldChannelId,parentChannel) {
+Debugger = function (id,shouldMute,parentChannel) {
     'use strict';
 	if (!Debugger.isInitialized()) Debugger.init();
 	this._channel_id = (id == undefined) ? "Debugger" : id;
-	this._isAlertMuted = (shouldAlert == undefined) ? false : !shouldAlert;
-	this._isWriteMuted = (shouldWrite == undefined) ? false : !shouldWrite;
-	this._isChannelIdMuted = (shouldChannelId == undefined) ? false : !shouldChannelId;
+	this._isAlertMuted = false;
+	this._isWriteMuted = false;
+	this._isChannelIdMuted = false;
+	this._isMuted = false;
 	this._parent_channel = (parentChannel == undefined) ? null : parentChannel;
 	this._isBranchAlertMuted = (this._parent_channel == null) ? false : this._parent_channel._isBranchAlertMuted;
 	this._isBranchWriteMuted = (this._parent_channel == null) ? false : this._parent_channel._isBranchWriteMuted;
 	this._isBranchChannelIdMuted = (this._parent_channel == null) ? false : this._parent_channel._isBranchChannelIdMuted;
+	this._isBranchMuted = (this._parent_channel == null) ? false : this._parent_channel._isBranchMuted;
 
 	this._channels = [];
 	this._channels_count = 0;
@@ -25,7 +27,7 @@ Debugger = function (id,shouldAlert,shouldWrite,shouldChannelId,parentChannel) {
 
 Debugger.prototype._createChannel = function (id) {
 	this._channels_count = this._channels.length;
-	var chan = new Debugger(id,true,true,true,this);
+	var chan = new Debugger(id,false,this);
 	this._channels[id] = chan;
 	this._channels[this._channels_count] = chan;
 	this._channels_count++;
@@ -150,17 +152,27 @@ Debugger.prototype.setVerbose = function (shouldAlert,shouldWrite,shouldChannelI
 	return this;
 }
 
+Debugger.prototype.mute = function (shouldMute) {
+	if (shouldMute != undefined) this._isMuted = shouldMute;
+	return this;
+}
+
+Debugger.prototype.isMuted = function () {
+	return (this._isMuted || this._isBranchMuted);
+	return this;
+}
+
 Debugger.prototype.displayChannelID = function(shouldChannelId) {
 	this._isChannelIdMuted = !shouldChannelId;
 	return this;
 }
 
 Debugger.prototype.canAlert = function () {
-	return (!this._isAlertMuted && !this._isBranchAlertMuted);
+	return (!this._isAlertMuted && !this._isBranchAlertMuted && !this._isMuted);
 }
 
 Debugger.prototype.canWrite = function () {
-	return (!this._isWriteMuted && !this._isBranchWriteMuted);
+	return (!this._isWriteMuted && !this._isBranchWriteMuted && !this._isMuted);
 }
 
 Debugger.prototype.canChannelId = function () {

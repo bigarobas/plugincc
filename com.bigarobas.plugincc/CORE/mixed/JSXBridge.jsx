@@ -8,7 +8,7 @@ JSXBridgeEvent = function (type,data,scope) {
     this.context = JSXBridge.getContext();
     this.bridge = null;
     this.bridgeName = null;
-    if (!scope) scope = JSXBridgeEventScope.MIRROR;
+    if (!scope) scope = JSXBridgeEventScope.BOTH;
     this.scope = scope;
 }
 

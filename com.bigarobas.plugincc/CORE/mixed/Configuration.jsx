@@ -5,15 +5,6 @@ Configuration = function (bridgeName) {
     this.bridgeName = bridgeName;
     this.bridge = new JSXBridge(this,bridgeName);
     var _self = this;
-    this.bridge.addBridgeEventListener("TEST",
-        function (event) {
-            alert( _self.bridge.getContext() + " : " + event.context);
-            alert( event.data.a + " , " + event.data.b);  
-        } 
-    );
-    
-    //var event = this.bridge.createBridgeEvent("TEST",{a:"mon message",b:"mon prix"},"both");
-    //this.bridge.dispatchBridgeEvent(event);
 }
 
 Configuration.prototype.onSynchComplete = function (res) {

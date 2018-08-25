@@ -38,10 +38,16 @@ _bridge.addBridgeEventListener("a_custom_event_type",function(e) {(...)});
 var event = _bridge.createBridgeEvent("a_custom_event_type",some_data_object,"both");
 _bridge.dispatchBridgeEvent(event);
 
-// RESULTS :
-// ON JSX SIDE : the bridge will receive 2 events with "a_custom_event_type". 1 from it's own dispatch (because it dispatched the event on "both" scope. 1 from JS side because the bridge on the JS side dispatched the event on the "mirror" scope 
-// ON JS SIDE : the bridge will receive only 1 event with "a_custom_event_type". The one dispatched from the JSX side (because it was dispatched "both" scope. It's own dispatch was only dispatched on "mirror" scope which means the opposite context of it's own (the opposite of JS being JSX).
+// RESULT ON JSX SIDE :
+The JSX bridge will receive **2 events** with "a_custom_event_type".
+1 from its own dispatch because it was on "both" scope.
+1 from JS context's dispatch because it was on "mirror" scope = the opposite context of JS = JSX.
+In this case the mirror (opposite) of JS is of course JSX.
 
+// RESULT ON JS SIDE :
+The JS bridge will receive only **1 event** with "a_custom_event_type".
+0 from its own dispatch because it was on "mirror" scope = the opposite context of it's own = JSX.
+1 from JSX context's dispatch because it was on "both" scope.
 ```
 ## Configuration
 - 1 file for both sides of the force (js / jsx)

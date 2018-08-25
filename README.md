@@ -15,7 +15,7 @@ It allows :
   - JSX (only JSXBridge objects on JSX context can receive the event)
   - SAME (only JSXBridge objects in the SAME context (JS or JSX) can receive the event)
   - MIRROR (only JSXBridge objects in the MIRROR ("opposite") context (JS or JSX) can receive the event)
-  - BOTH (JSXBridge objects in BOTH context (JS and JSX) can receive the event) 
+  - BOTH (JSXBridge objects in BOTH contexts (JS and JSX) can receive the event) 
 - easy composite implementation
 ```
 //IMPORTING THE MODULE

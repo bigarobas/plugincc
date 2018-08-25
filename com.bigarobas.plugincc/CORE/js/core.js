@@ -30,6 +30,7 @@ ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js
 CORE = (function () {
 	'use strict';
 
+	var _hasBeenInitOnce = false;
 	var _modules = [];
 	var _modulesDef = [];
 	var _modules_path;
@@ -37,6 +38,10 @@ CORE = (function () {
 	var _events_names = [
 		"CORE.JS.INIT.BEGIN",
 		"CORE.JS.INIT.END",
+		"CORE.JS.BERIDGE.INIT.BEGIN",
+		"CORE.JS.BERIDGE.INIT.END",
+		"CORE.JS.DEBUGGER.INIT.BEGIN",
+		"CORE.JS.DEBUGGER.INIT.END",
 		"CORE.JS.MODULES.LOAD.BEGIN",
 		"CORE.JS.MODULES.LOAD.END",
 		"CORE.JS.MODULES.BUILD.BEGIN",
@@ -55,18 +60,19 @@ CORE = (function () {
 		"CORE.JS.READY"
 	];
 
+	//TODO : LET IT BE CALLED BY PLUGIN
 	init();
 
 	function init() {
+		if (_hasBeenInitOnce) return;
+		_hasBeenInitOnce = true;
 		initBridge();
-		dispatchBridgeEvent("CORE.JS.INIT.START");
-		initDebugger();
-		DEBUG.channel("core.js-verbose").log("init");
-		loadCoreConfig();
 	}
 
 	function initBridge() {
+		
 		_bridge = new JSXBridge(this,"CORE");
+		
 
 		for (var i = 0 ; i<_events_names.length ; i++) 
 			_bridge.addBridgeEventListener(_events_names[i],onBridgeEventHandler);
@@ -75,6 +81,17 @@ CORE = (function () {
 		_bridge.addBridgeEventListener("CORE.JSX.INIT.END",onBridgeEventHandler);
 		_bridge.addBridgeEventListener("CORE.JSX.START.BEGIN",onBridgeEventHandler);
 		_bridge.addBridgeEventListener("CORE.JSX.START.END",onBridgeEventHandler);
+
+		dispatchBridgeEvent("CORE.JS.INIT.BEGIN",null,"js");
+		dispatchBridgeEvent("CORE.JS.BERIDGE.INIT.BEGIN",null,"js");
+
+		initBridgeInJSX();
+	}
+
+	function initBridgeInJSX() {
+		CSHelper.includeJSX("CORE/mixed/JSXBridge.jsx",function(res) {
+			dispatchBridgeEvent("CORE.JS.BERIDGE.INIT.END");
+		});
 	}
 
 	function onBridgeEventHandler(event) {
@@ -87,12 +104,25 @@ CORE = (function () {
 
 			case "CORE.JS.INIT.BEGIN" :
 				break;
-			
+
+			case "CORE.JS.BERIDGE.INIT.BEGIN" :
+				break;
+			case "CORE.JS.BERIDGE.INIT.END" :
+				initDebugger();
+				break;
+
+			case "CORE.JS.DEBUGGER.INIT.BEGIN" :
+				break;
+			case "CORE.JS.DEBUGGER.INIT.END" :
+				loadCoreConfig();
+				break;
+
 			case "CORE.JS.CONFIG.CORE.BEGIN" :
 				break;
 			case "CORE.JS.CONFIG.CORE.END" :
 				includeCoreJsx();
 				break;
+
 			case "CORE.JS.CONFIG.PLUGIN.BEGIN" :
 				break;
 			case "CORE.JS.CONFIG.PLUGIN.END" :
@@ -158,6 +188,7 @@ CORE = (function () {
 	}
 
 	function initDebugger() {
+		dispatchBridgeEvent("CORE.JS.DEBUGGER.INIT.BEGIN");
 		DEBUG.channel("core.js").mute(false).setVerbose(true,true,true);
 		DEBUG.channel("core.js-verbose").mute(true);
 		DEBUG.channel("core.js-verbose").log("initDebugger");
@@ -165,6 +196,7 @@ CORE = (function () {
 		DEBUG.channel("csxs_custom_events").mute(true);
 		DEBUG.channel("csxs_native_events").mute(true);
 		DEBUG.channel("cep_native_events").mute(true);
+		dispatchBridgeEvent("CORE.JS.DEBUGGER.INIT.END");
 	}
 
 	function loadCoreConfig() {

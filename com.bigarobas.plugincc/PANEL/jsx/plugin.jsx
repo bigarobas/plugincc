@@ -1,12 +1,12 @@
-PLUGIN = (function () {
+PANEL = (function () {
     'use strict';
 	
     function init() {
-        DEBUG.log("plugin.jsx init");
+        DEBUG.log("panel.jsx init");
     }
 
     function test() {
-        DEBUG.popup("plugin.jsx test");
+        DEBUG.popup("panel.jsx test");
     }
     
     return ( 

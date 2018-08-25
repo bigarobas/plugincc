@@ -75,8 +75,6 @@ CORE = (function () {
             } catch (e) {
                 alert("Exception:" + e);
             }
-            
-            
         }
 
         function includeJSXFolder(path) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionManifest Version="7.0" ExtensionBundleId="com.bigarobas.plugincc" ExtensionBundleVersion="1.0.0"
-		ExtensionBundleName="Plugin CC Template - DEV" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+		ExtensionBundleName="Panel CC Template - DEV" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<ExtensionList>
 		<Extension Id="com.bigarobas.plugincc" Version="1.0" />
 	</ExtensionList>
@@ -51,7 +51,7 @@
 		<Extension Id="com.bigarobas.plugincc">
 			<DispatchInfo >
 				<Resources>
-				<MainPath>./PLUGIN/html/index.html</MainPath>
+				<MainPath>./PANEL/html/index.html</MainPath>
 				<CEFCommandLine>
                     <Parameter>--enable-nodejs</Parameter>
 					<Parameter>--mixed-context</Parameter>
@@ -63,7 +63,7 @@
 				</Lifecycle>
 				<UI>
 					<Type>Panel</Type>
-					<Menu>Plugin CC Template - DEV</Menu>
+					<Menu>Panel CC Template - DEV</Menu>
 					<Geometry>
 						<Size>
 							<Height>300</Height>
@@ -80,10 +80,10 @@
                         
 					</Geometry>
 					<Icons>
-						<Icon Type="Normal">./PLUGIN/assets/icons/iconNormal.png</Icon>
-						<Icon Type="RollOver">./PLUGIN/assets/icons/iconRollover.png</Icon>
-						<Icon Type="Disabled">./PLUGIN/assets/icons/iconDisabled.png</Icon>
-						<Icon Type="DarkNormal">./PLUGIN/assets/icons/iconDarkNormal.png</Icon>
+						<Icon Type="Normal">./PANEL/assets/icons/iconNormal.png</Icon>
+						<Icon Type="RollOver">./PANEL/assets/icons/iconRollover.png</Icon>
+						<Icon Type="Disabled">./PANEL/assets/icons/iconDisabled.png</Icon>
+						<Icon Type="DarkNormal">./PANEL/assets/icons/iconDarkNormal.png</Icon>
 						<Icon Type="DarkRollOver">./PLUGINs/assets/icons/iconDarkRollover.png</Icon>
 					</Icons>					
 				</UI>

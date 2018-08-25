@@ -1,18 +1,12 @@
-# plugincc
-Toolbox for building Adobe CC extensions with CEP
+# Toolbox for building Adobe CC extensions with CEP
+It probably needs a better name ^^
 
-## Features :
+**Purpose :**
+- minimize code duplication in both contexts (JS / JSX)
+- ease communication between both contexts (JS / JSX)
+- bring separate independent tools as well as a full framework and workflow based on those tools.
 
-### ES5 & Node 1.2 backward compatible
-
-### Mixed approach
-Trying to minimize code duplication on both sides (JS / JSX) with "mixed" JSX files than work on both sides with some context specific code.
-
-### Modular
-You can use the whole framework or some parts of it as independent modules.
-Here is the list of the most advanced modules :
-
-#### JSXBridge
+## JSXBridge
 This is the central module around which this toolset is made.
 It allows :
 - easy mirroring the code on both sides (JS/JSX) within the same file
@@ -49,7 +43,7 @@ _bridge.dispatchBridgeEvent(event);
 // ON JS SIDE : the bridge will receive only 1 event with "a_custom_event_type". The one dispatched from the JSX side (because it was dispatched "both" scope. It's own dispatch was only dispatched on "mirror" scope which means the opposite context of it's own (the opposite of JS being JSX).
 
 ```
-#### Configuration
+## Configuration
 - 1 file for both sides of the force (js / jsx)
 ```
 //IMPORTING THE MODULE
@@ -68,7 +62,7 @@ CONFIG.synch(); //this is the most interresting part. Synch the config with the 
 
 ```
 
-#### Debugger
+## Debugger
 - 1 file for both sides of the force (js / jsx)
 ```
 //IMPORTING THE MODULE
@@ -159,7 +153,7 @@ DEBUG.channel("some_channel_name")
   .flush();
 ```
 
-#### JSXHelper(s)
+## JSXHelper(s)
 A collection of handy functions for some  Adobe CC applications :
 (This still needs serious cleaning / harmonizeing / testing)
 - JSXHelper             (global functions for all applications)
@@ -169,7 +163,7 @@ A collection of handy functions for some  Adobe CC applications :
 - JSXHelper_INDS.jsx    (InDesign functions)
 - (more to come...)
 
-#### CORE
+## CORE
 This needs a better name (or not ^^).
 This is the full framework which uses the modules above to bring more complete solution to build your panel.
 - Configuration based initialisation of your panel.

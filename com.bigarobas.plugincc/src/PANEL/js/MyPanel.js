@@ -6,27 +6,28 @@ CORE.addBridgeEventListener("CORE.READY",onCoreReady);
 CORE.init();
 
 function onCoreReady(event) {
-    console.log("HELLO");
+    PANEL = new MyPanel();
 }
 
-/*
-function MyPanel() {
-    
-    console.log(this.addBridgeEventListener);
+function MyPanel() { 
     this.bridge = new JSXBridge(this,"PANEL");
-    console.log(this.addBridgeEventListener);
     this.listen("TEST",this.onEvent);
-    CORE.dispatch("TEST","HELLO","both");
+    this.listen("ModuleA.TEST",this.onEvent);
+    CORE.dispatch("TEST",{someData:[1,2,3,4]},"both");
+}
 
+MyPanel.prototype.onEvent = function(event) {
+    DEBUG.channel("MyPanel")
+        .separate()
+        .log("Event Reseived")
+        .log("type : "+event.type)
+        .log("data : ")
+        .struct(event.data)
+        .separate()
+        .logInContext("HELLO");
 }
 
 
-MyPanel.prototype.onEvent = function(e) {
-    console.log(e);
-    console.log(this);
-}
-
-*/
 
 /*
 console.log(__EXTENTION_PATH__);
@@ -40,7 +41,6 @@ p1.init();
 p2 = new Panel("P2");
 p2.listen("PLUGIN.READY",onPluginReady);
 p2.init();
-
 
 function onPluginReady(event) {
     console.log(event);

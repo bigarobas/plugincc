@@ -5,8 +5,11 @@ class ModuleA extends Module {
 
     init () {
         super.init();
+        var _self = this;
         $("#btn_open_debug").click(function () {
             ENV.openDebugUrl();
+            _self.dispatch("ModuleA.TEST");
+
         });
     }
 

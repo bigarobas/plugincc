@@ -2,6 +2,7 @@ class Module {
     constructor (id,name) {
         this.id = id;
         this.name = (!name) ? "MODULE" : name;
+        this.bridge = new JSXBridge(this,name);
 
     }
     test () {

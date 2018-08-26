@@ -73,7 +73,7 @@ Debugger.prototype.popup = function(message) {
 
 Debugger.prototype.popupJson = function(message) { 
 	if (this.canAlert()) { 
-		message = JSON.stringify(message);
+		message = Debugger.stringify(message);
 		var regex = new RegExp(/"/g);
 		message = message.replace(regex,'\\"');
 		message = this.formatMessage(message);
@@ -89,7 +89,7 @@ Debugger.prototype.stack = function(message) {
 }
 
 Debugger.prototype.stackJson = function(message) { 
-	this._queue.push(JSON.stringify(message));
+	this._queue.push(Debugger.stringify(message));
 	return this;
 }
 Debugger.prototype.flush = function (message,shoudSeparate) {
@@ -132,10 +132,27 @@ Debugger.prototype.writeln = function (message,shoudSeparate) {
 
 Debugger.prototype.json = function (message) {
 	if (this.canWrite()) { 
-		var message = JSON.stringify(message);
+		var message = Debugger.stringify(message);
 		message = this.formatMessage(message);
 		Debugger._writeln(message); 
 	};
+	return this;
+}
+
+Debugger.prototype.struct = function (message,shoudSeparate) {
+	if (this.canWrite()) {this.formatMessage("")
+		if (shoudSeparate) Debugger._writeln(this._separator);
+		Debugger._writeln(this.formatMessage("")); 
+		Debugger._writeln(message); 
+		if (shoudSeparate) Debugger._writeln(this._separator);
+	}
+	return this;
+}
+
+Debugger.prototype.separate = function () {
+	if (this.canWrite()) {
+		Debugger._writeln(this._separator);
+	}
 	return this;
 }
 
@@ -184,9 +201,21 @@ Debugger.prototype.setSeparator = function (str) {
 	return this;
 }
 
+Debugger.prototype.logInContext = function() {
+	//if (!Debugger.isInitialized()) return function(){};
+	if (typeof console == 'undefined') return function(){};
+	var context = "My Descriptive Logger Prefix:";
+	return Function.prototype.bind.call(console.log, console, context);
+}();
+
+
 Debugger._bridgeName = "Debugger";
 Debugger._bridge = null;
 Debugger._initialized = false;
+/*
+Debugger._chromeLog = null;
+Debugger._logInContext = null;
+*/
 
 Debugger.isInitialized = function() {
 	return Debugger._initialized;
@@ -206,6 +235,15 @@ Debugger.init = function() {
 	if (Debugger._initialized) return true;
 	Debugger._bridge =  new JSXBridge(this,Debugger._bridgeName); 
 	Debugger._initialized = true;
+	/*
+	if (Debugger._bridge.checkContext("js")) {
+		Debugger._chromeLog = console.log.bind(console);
+		Debugger._logInContext = function() {
+			var context = "My Descriptive Logger Prefix:";
+			return Function.prototype.bind.call(console.log, console, context);
+		}();
+	}
+	*/
 }
 
 
@@ -217,6 +255,8 @@ Debugger._write = function (message) {
         console.log(message);
     } 
 }
+
+
 
 Debugger._writeln = function (message) {
 	if (this._bridge.checkContext("jsx")) {
@@ -236,6 +276,32 @@ Debugger._alert = function (message) {
 			null
         );
     } 
+}
+
+//FROM :
+//https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json
+Debugger.stringify = function(obj) {
+    // Note: cache should not be re-used by repeated calls to JSON.stringify.
+    var cache = [];
+    var result = JSON.stringify(obj, function(key, value) {
+        if (typeof value === 'object' && value !== null) {
+            if (cache.indexOf(value) !== -1) {
+                // Duplicate reference found
+                try {
+                    // If this value does not reference a parent it can be deduped
+                    return JSON.parse(JSON.stringify(value));
+                } catch (error) {
+                    // discard key if value cannot be deduped
+                    return;
+                }
+            }
+            // Store value in our collection
+            cache.push(value);
+        }
+        return value;
+    });
+    cache = null; // Enable garbage collection
+    return result;
 }
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {

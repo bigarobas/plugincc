@@ -1,34 +1,34 @@
+console.log("HELLO");
 
-
-/*
 PANEL = null;
 
 CORE.addBridgeEventListener("CORE.READY",onCoreReady);
 CORE.init();
 
-PANEL = null;
-
 function onCoreReady(event) {
-    PANEL = (function() {
-        function MyPanel() {
-            console.log(this.addBridgeEventListener);
-            this.bridge = new JSXBridge(this,"PANEL");
-            console.log(this.addBridgeEventListener);
-            this.addBridgeEventListener("TEST",this.onEvent);
-            var event = CORE.createBridgeEvent("TEST","HELLO","both");
-            CORE.dispatchBridgeEvent(event);
-        
-        }
-        MyPanel.prototype.onEvent = function(e) {
-            console.log(e);
-            console.log(this);
-        }
-        return new MyPanel();
-    })();
+    console.log("HELLO");
 }
+
+/*
+function MyPanel() {
+    
+    console.log(this.addBridgeEventListener);
+    this.bridge = new JSXBridge(this,"PANEL");
+    console.log(this.addBridgeEventListener);
+    this.listen("TEST",this.onEvent);
+    CORE.dispatch("TEST","HELLO","both");
+
+}
+
+
+MyPanel.prototype.onEvent = function(e) {
+    console.log(e);
+    console.log(this);
+}
+
 */
 
-
+/*
 console.log(__EXTENTION_PATH__);
 
 Panel =  require(__EXTENTION_PATH__ + "/CORE/mixed/Panel.jsx");
@@ -46,6 +46,7 @@ function onPluginReady(event) {
     console.log(event);
     console.log(this);
 }
+*/
 
 
 

@@ -1,4 +1,4 @@
-//####################################################
+﻿//####################################################
 // JSXBridgeEvent
 //####################################################
 
@@ -11,6 +11,8 @@ JSXBridgeEvent = function (type,data,scope) {
     if (!scope) scope = JSXBridgeEventScope.BOTH;
     this.scope = scope;
 }
+
+
 
 JSXBridgeEvent.MIRROR_FROM_JSX = "JSXBridgeEvent_MIRROR_FROM_JSX";
 
@@ -42,7 +44,7 @@ JSXBridgeEvent.prototype.mirrorClone = function () {
 JSXBridgeEvent.prototype.stringClone = function () {
     var clone = this.clone();
     clone.bridge = "";
-    return JSON.stringify(clone);
+    return JSXBridge.stringify(clone);
 }
 
 JSXBridgeEvent.prototype.toString = function() {
@@ -69,7 +71,99 @@ JSXBridge = function(client,bridgeName) {
     this.client = client;
     this.bridgeName = bridgeName;
     JSXBridge.register(this);
+    this.initClient(client,bridgeName);
 }
+
+//####################################################
+// JSXBridge prototype
+//####################################################
+
+//TODO : make it work !
+JSXBridge.prototype.initClient = function (client,bridgeName) {
+    if (!client) return;
+    
+    var _self = this;
+
+    if (typeof client.addBridgeEventListener == 'undefined') {
+        client.addBridgeEventListener = function(type,handler) {
+            _self.addBridgeEventListener(type,handler);
+        }
+    }
+    if (typeof client.dispatchBridgeEvent == 'undefined') {
+        client.dispatchBridgeEvent = function(event) {
+            _self.dispatchBridgeEvent(event);
+        }
+    }
+    if (typeof client.dispatch == 'undefined') {
+        client.dispatch = function(type,data,scope) {
+            _self.dispatch(type,data,scope);
+        }
+    }
+    if (typeof client.listen == 'undefined') {
+        client.listen = function(type,handler) {
+            _self.addBridgeEventListener(type,handler);
+        }
+    }
+    if (typeof client.createBridgeEvent == 'undefined') {
+        client.createBridgeEvent = function(type,data,scope) {
+            return _self.createBridgeEvent(type,data,scope);
+        }
+    }
+    
+}
+
+
+JSXBridge.prototype.getContext = function () {
+    return JSXBridge.getContext();
+}
+
+JSXBridge.prototype.checkContext = function (ctx) {
+    return JSXBridge.checkContext(ctx);
+}
+
+JSXBridge.prototype.hasBridgeName = function() {
+	return (this.bridgeName != undefined);
+}
+
+JSXBridge.prototype.setBridgeName = function (bridgeName) {
+    this.bridgeName = bridgeName;
+    return this.bridgeName;
+}
+
+JSXBridge.prototype.getBridgeName = function () {
+	return this.bridgeName;
+}
+
+JSXBridge.prototype.addBridgeEventListener = function (type,handler) {
+	return JSXBridge.registerAsListener(this,type,handler);
+}
+
+JSXBridge.prototype.removeBridgeEventListener = function (type,handler) {
+	return JSXBridge.unRegisterAsListener(this,type,handler);
+}
+
+JSXBridge.prototype.dispatchBridgeEvent = function (event) {
+    event.bridge = this;
+    event.bridgeName = this.bridgeName;
+	JSXBridge.dispatchBridgeEvent(event);
+}
+
+JSXBridge.prototype.dispatch = function (type,data,scope) {
+    var event =  this.createBridgeEvent(type,data,scope);
+    this.dispatchBridgeEvent(event);
+}
+
+JSXBridge.prototype.createBridgeEvent = function (type,data,scope) {
+    return JSXBridge.createBridgeEvent(type,data,scope);
+}
+
+JSXBridge.prototype.mirror = function (function_name,function_args,callback_or_expression) {
+    JSXBridge.mirror(this,function_name,function_args,callback_or_expression);  
+}
+
+//####################################################
+// JSXBridge statics
+//####################################################
 
 JSXBridge._ctx = undefined;
 JSXBridge._csInterface = undefined;
@@ -173,10 +267,10 @@ JSXBridge.argsToString = function (args) {
             result = '"'+args+'"';
             break;
         case "object":
-            result = JSON.stringify(args);
+            result = JSXBridge.stringify(args);
             break;
         default:
-            result = JSON.stringify(args);
+            result = JSXBridge.stringify(args);
             break;
     }
     return result
@@ -195,10 +289,14 @@ JSXBridge._dispatchBridgeEventAmongListeners = function (event) {
     var type = event.type;
     var handlersList = JSXBridge.getOrCreateBridgeEventHandlersList(type);
     var listener;
-    var i = handlersList.length;
-    while (i--) {
+    var n = handlersList.length;
+    for (var i=0 ; i < n ; i++) {
         listener = handlersList[i];
-        listener.handler(event);
+        if (typeof listener.bridge.client != 'undefined') {
+            listener.handler.call(listener.bridge.client,event);
+        } else {
+            listener.handler(event);
+        }
     } 
 }
 
@@ -275,7 +373,7 @@ JSXBridge.mirror_from_jsx = function(bridge,function_name,function_args,callback
     var args_str = JSXBridge.argsToString(function_args);
     var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
     var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
-    var data = JSON.stringify({
+    var data = JSXBridge.stringify({
         bridgeName : bridge.bridgeName,
         functionName : function_name,
         functionArgs : function_args,
@@ -307,52 +405,33 @@ JSXBridge.mirror_from_js = function(bridge,function_name,function_args,callback_
     return false;
 }
 
-//####################################################
-// JSXBridge prototype
-//####################################################
-
-JSXBridge.prototype.getContext = function () {
-    return JSXBridge.getContext();
+//FROM :
+//https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json
+JSXBridge.stringify = function(obj) {
+    // Note: cache should not be re-used by repeated calls to JSON.stringify.
+    var cache = [];
+    var result = JSON.stringify(obj, function(key, value) {
+        if (typeof value === 'object' && value !== null) {
+            if (cache.indexOf(value) !== -1) {
+                // Duplicate reference found
+                try {
+                    // If this value does not reference a parent it can be deduped
+                    return JSON.parse(JSON.stringify(value));
+                } catch (error) {
+                    // discard key if value cannot be deduped
+                    return;
+                }
+            }
+            // Store value in our collection
+            cache.push(value);
+        }
+        return value;
+    });
+    cache = null; // Enable garbage collection
+    return result;
 }
 
-JSXBridge.prototype.checkContext = function (ctx) {
-    return JSXBridge.checkContext(ctx);
-}
 
-JSXBridge.prototype.hasBridgeName = function() {
-	return (this.bridgeName != undefined);
-}
-
-JSXBridge.prototype.setBridgeName = function (bridgeName) {
-    this.bridgeName = bridgeName;
-    return this.bridgeName;
-}
-
-JSXBridge.prototype.getBridgeName = function () {
-	return this.bridgeName;
-}
-
-JSXBridge.prototype.addBridgeEventListener = function (type,handler) {
-	return JSXBridge.registerAsListener(this,type,handler);
-}
-
-JSXBridge.prototype.removeBridgeEventListener = function (type,handler) {
-	return JSXBridge.unRegisterAsListener(this,type,handler);
-}
-
-JSXBridge.prototype.dispatchBridgeEvent = function (event) {
-    event.bridge = this;
-    event.bridgeName = this.bridgeName;
-	JSXBridge.dispatchBridgeEvent(event);
-}
-
-JSXBridge.prototype.createBridgeEvent = function (type,data,scope) {
-    return JSXBridge.createBridgeEvent(type,data,scope);
-}
-
-JSXBridge.prototype.mirror = function (function_name,function_args,callback_or_expression) {
-    JSXBridge.mirror(this,function_name,function_args,callback_or_expression);  
-}
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {
 	module.exports = JSXBridge;

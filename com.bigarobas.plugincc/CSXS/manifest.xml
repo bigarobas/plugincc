@@ -84,7 +84,7 @@
 						<Icon Type="RollOver">./PANEL/assets/icons/iconRollover.png</Icon>
 						<Icon Type="Disabled">./PANEL/assets/icons/iconDisabled.png</Icon>
 						<Icon Type="DarkNormal">./PANEL/assets/icons/iconDarkNormal.png</Icon>
-						<Icon Type="DarkRollOver">./PLUGINs/assets/icons/iconDarkRollover.png</Icon>
+						<Icon Type="DarkRollOver">./PANEL/assets/icons/iconDarkRollover.png</Icon>
 					</Icons>					
 				</UI>
 			</DispatchInfo>

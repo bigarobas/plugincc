@@ -4,7 +4,7 @@ It probably needs a better name ^^
 **Purpose :**
 - minimize code duplication in both contexts (JS / JSX)
 - ease communication between both contexts (JS / JSX)
-- bring separate independent tools as well as a full framework and workflow based on those tools.
+- bring independent tools as well as a full framework and workflow based on those tools.
 
 ## JSXBridge
 This is the central module around which this toolset is made.

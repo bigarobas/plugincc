@@ -5,38 +5,89 @@ It probably needs a better name ^^
 - minimize code duplication in both contexts (JS / JSX)
 - ease communication between both contexts (JS / JSX)
 - bring independent tools as well as a full framework and workflow based on those tools.
+- no dependencies (except CEP - Creative Cloud Extension SDK libs of course)
 
 ## JSXBridge
 This is the central module around which this toolset is made.
-It allows :
-- easy mirroring the code on both sides (JS/JSX) within the same file
+When creating a JSXBridge for an Object this object is auto implemented with the following methodes :
+- mirror(function_name,function_args,callback_or_expression)
+- getContext() 
+- checkContext(ctx)
+- listen(type,handler)
+- dispatch(type,data,scope)
+These methodes allow us to :
+- easy mirroring methodes on both sides (JS/JSX)
+```javascript
+//Let's say you have 2 files one on JS and the other on JSX context with code on global level :
+
+//on JS side
+SAME_BRIDGE_NAME = new ClassA();
+SAME_BRIDGE_NAME.log("HELLO FROM JS");
+function ClassA () { 
+    this.bridge = new JSXBridge(this,"SAME_BRIDGE_NAME");
+    this.log = function(message) {
+      console.log(message);
+    }
+}
+
+//on JSX side
+SAME_BRIDGE_NAME = new ClassB();
+SAME_BRIDGE_NAME.log("HELLO FROM JSX");
+function ClassB () { 
+    this.bridge = new JSXBridge(this,"SAME_BRIDGE_NAME");
+    this.log = function(message) {
+      this.mirror('log',message);
+    }
+}
+
+//RESULT in chrome console (JS context) :
+> HELLO FROM JS
+> HELLO FROM JSX
+```
+- MIXED CONTEXT : you can also do the same thing with only 1 file (loaded both on JS and JSX context)
+```javascript
+
+BRIDGE_NAME = new ClassA();
+function ClassA () { 
+    this.bridge = new JSXBridge(this,"BRIDGE_NAME");
+    this.log("HELLO FROM "+this.getContext());
+}
+
+ClassA.prototype.log = function (message) {
+  if (this.checkContext("js") {
+    console.log(message);
+  } else {
+    this.mirror('log',message);
+  }
+}
+
+//RESULT in chrome console (JS context) :
+> HELLO FROM js
+> HELLO FROM jsx
+```
 - easy communicating with between objects on both sides with a custom Observer pattern that let you dispatch custom JSXBridgeEvents with 5 different scopes :
   - JS (only JSXBridge objects on JS context can receive the event)
   - JSX (only JSXBridge objects on JSX context can receive the event)
   - SAME (only JSXBridge objects in the SAME context (JS or JSX) can receive the event)
   - MIRROR (only JSXBridge objects in the MIRROR ("opposite") context (JS or JSX) can receive the event)
   - BOTH (JSXBridge objects in BOTH contexts (JS and JSX) can receive the event) 
-- easy composite implementation
 ```javascript
+
 //IMPORTING THE MODULE
   // JS SIDE
-  JSXBridge = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
+  Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
   // JSX SIDE
   $.evalFile(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
   
-// ON JS SIDE (wherever...)
-var _bridge = new JSXBridge(this,"a_bridge_name");
-_bridge.addBridgeEventListener("a_custom_event_type",function(e) {(...)});
-// (... later on)
-var event = _bridge.createBridgeEvent("a_custom_event_type",some_data_object,"mirror");
-_bridge.dispatchBridgeEvent(event);
+// IN AN OBJECT IN JS CONTEXT
+var _bridge = new JSXBridge(this,"SOME_BRIDGE_NAME");
+this.listen("a_custom_event_type",function(event) {(...)});
+this.dispatch("a_custom_event_type",some_data_object,"mirror");
 
-// ON JSX SIDE (wherever...)
-var _bridge = new JSXBridge(this,"a_bridge_name");
-_bridge.addBridgeEventListener("a_custom_event_type",function(e) {(...)});
-// (... later on)
-var event = _bridge.createBridgeEvent("a_custom_event_type",some_data_object,"both");
-_bridge.dispatchBridgeEvent(event);
+// IN AN OBJECT IN JSX CONTEXT
+var _bridge = new JSXBridge(this,"SAME_OR_OTHER_BRIDGE_NAME");
+this.listen("a_custom_event_type",function(event) {(...)});
+this.dispatch("a_custom_event_type",some_data_object,"both")
 
 /*
 # RESULT ON JSX SIDE :
@@ -51,8 +102,9 @@ The JS bridge will receive only 1 event with "a_custom_event_type".
 1 from JSX context's dispatch because it was on "both" scope.
 */
 ```
+
 ## Configuration
-- 1 file for both sides of the force (js / jsx)
+- Mixed Configuration object synched and available in both contexts (JS ad JSX)
 ```javascript
 //IMPORTING THE MODULE
   // JS SIDE
@@ -85,7 +137,7 @@ Then key/values are pushed to synch.
 Existing keys are updated (which should not happen) / non existing keys are created.
 
 ## Debugger
-- 1 file for both sides of the force (js / jsx)
+- Mixed Multichanel Debugger available in both contexts (JS ad JSX)
 ```javascript
 // IMPORTING THE MODULE
   // JS SIDE
@@ -111,17 +163,17 @@ DEBUG.channel("main_channel_branch_name").setSeparator("-._.-._.-._.-._.-._.-._.
   - write(message) 
   ```javascript
   DEBUG.channel("some_channel_name").write("Hello World");
-  // JSX : $.write / JS : console.log
+  // JSX : JSX : mirrored to chrome.console.log instead of $.write / JS : chrome.console.log
   ```
   - writeln(message) 
   ```javascript
   DEBUG.channel("some_channel_name").writeln("Hello World");
-  // JSX : $.writeln / JS : console.log
+  // JSX : mirrored to chrome.console.log instead of $.writeln / JS : chrome.console.log
   ```
   - log(message) 
   ```javascript
   DEBUG.channel("some_channel_name").log("Hello World");
-  // JSX : $.writeln / JS : console.log
+  // JSX : mirrored to chrome.console.log instead of $.writeln / JS : chrome.console.log
   // the same than .writeln()
   ```
   - json(someObject) 
@@ -132,7 +184,7 @@ DEBUG.channel("main_channel_branch_name").setSeparator("-._.-._.-._.-._.-._.-._.
   - popup(message) 
   ```javascript
   DEBUG.channel("some_channel_name").popup(message);
-  // application alert - event if called from panel side (js)
+  // application alert - event if called from chrome side (js)
   ```
   - popupJson 
   ```javascript
@@ -187,20 +239,73 @@ A collection of handy functions for some  Adobe CC applications :
 
 ## CORE
 This needs a better name (or not ^^).
-This is the full framework which uses the modules above to bring a more complete solution to build your panel.
+This is the framework approach which uses the modules above to bring a more complete solution to build your panel.
+- JSXBridge : Scoped event dispatcher and mixed context Helper.
 - Configuration based initialisation of your panel.
   - 1 core json configuration file (that you won't need to change)
   - 1 panel json configuration file specific to your panel were you can define :
     - all your project specific values (jsx files to load, paths, etc.)
     - all your custom key/values
-- event driven CORE launch sequence managing both sides (JS and JSX)
-  - PREPARE (Core)
-  - LOAD (Config/Modules/Libs)
-  - BUILD (Modules)
-  - INIT(Core/Config/Modules)
-  - START (Core/Modules)
-- JSXBridge : mixed context script files and scoped event dispatcher
-- Multi Channel Debugger
-- JSXHelper(s)
+- Mixed Configuration object synched and available is both contexts (JS ad JSX)
+- Mixed Environement object synched and available is both contexts (JS ad JSX)
+- Mixed Multi Channel Debugger available is both contexts (JS ad JSX)
+- JSXHelper(s) : a collection of handy functions for some  Adobe CC applications.
 - es5-shim built-in for JSX (ES3 JSX power up to ES5)
+- Event driven CORE launch sequence managing both sides (JS and JSX)
+```javascript
+//CORE
+CORE.JS.START
+CORE.JS.INIT.BEGIN
+CORE.JS.INIT.END
+CORE.JSX.INIT.BEGIN
+CORE.JSX.INIT.END
+CORE.READY
+
+//ENVIRONMENT
+CORE.JS.ENV.INIT.BEGIN
+CORE.JS.ENV.INIT.END
+CORE.JSX.ENV.INIT.BEGIN
+CORE.JSX.ENV.INIT.END
+CORE.ENV.SYNCH.BEGIN
+CORE.ENV.SYNCH.END
+CORE.ENV.READY
+
+//DEBUGGER
+CORE.JS.DEBUGGER.INIT.BEGIN
+CORE.JS.DEBUGGER.INIT.END
+CORE.JSX.DEBUGGER.INIT.BEGIN
+CORE.JSX.DEBUGGER.INIT.END
+CORE.DEBUGGER.READY
+
+//CONFIGURATION
+CORE.JS.CONFIG.INIT.BEGIN
+CORE.JS.CONFIG.INIT.END
+CORE.JS.CONFIG.CORE.BEGIN
+CORE.JS.CONFIG.CORE.END
+CORE.JS.CONFIG.PANEL.BEGIN
+CORE.JS.CONFIG.PANEL.END
+CORE.JSX.CONFIG.INIT.BEGIN
+CORE.JSX.CONFIG.INIT.END
+CORE.CONFIG.INIT.SYNCH.BEGIN
+CORE.CONFIG.INIT.SYNCH.END
+CORE.CONFIG.READY
+
+//INCLUDES
+CORE.INCLUDE.JSX.CORE.BEGIN
+CORE.INCLUDE.JSX.CORE.END
+CORE.INCLUDE.JSX.PANEL.BEGIN
+CORE.INCLUDE.JSX.PANEL.END
+CORE.INCLUDE.JSX.READY
+
+//MODULES
+CORE.JS.MODULES.LOAD.BEGIN
+CORE.JS.MODULES.LOAD.END
+CORE.JS.MODULES.BUILD.BEGIN
+CORE.JS.MODULES.BUILD.END
+CORE.JS.MODULES.INIT.BEGIN
+CORE.JS.MODULES.INIT.END
+CORE.JS.MODULES.START.BEGIN
+CORE.JS.MODULES.START.END
+CORE.MODULES.READY
+```
 - (more to come...)

@@ -73,6 +73,11 @@ Environment.prototype.openDebugUrl = function() {
 	}
 }
 
+
+Environment.prototype.getDebugUrl = function() {
+	return this.EXTENTION_DEBUG_URL;
+}
+
 Environment.prototype.getAbsolutePath = function(filepath) {
 	if (this.CONTEXT == "js") {
 		if (filepath[0] === '~') {

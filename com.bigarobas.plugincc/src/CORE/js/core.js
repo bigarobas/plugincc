@@ -210,7 +210,7 @@ CORE_Private_Class.prototype.initDebugger = function() {
 	DEBUG.channel("core.js").mute(false).setVerbose(true,true,true);
 	DEBUG.channel("core.js-verbose").mute(true);
 	DEBUG.channel("core.js-verbose").log("initDebugger");
-	DEBUG.channel("module").mute(false);
+	DEBUG.channel("module").mute(true);
 	DEBUG.channel("csxs_custom_events").mute(true);
 	DEBUG.channel("csxs_native_events").mute(true);
 	DEBUG.channel("cep_native_events").mute(true);

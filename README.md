@@ -26,6 +26,7 @@ SAME_BRIDGE_NAME.log("HELLO FROM JS");
 function ClassA () { 
     this.bridge = new JSXBridge(this,"SAME_BRIDGE_NAME");
     this.log = function(message) {
+      //console is defined is JS context so we can use it
       console.log(message);
     }
 }
@@ -36,6 +37,7 @@ SAME_BRIDGE_NAME.log("HELLO FROM JSX");
 function ClassB () { 
     this.bridge = new JSXBridge(this,"SAME_BRIDGE_NAME");
     this.log = function(message) {
+      //console is NOT defined is JSX context so we mirror the action to the JS side
       this.mirror('log',message);
     }
 }
@@ -46,7 +48,6 @@ function ClassB () {
 ```
 - MIXED CONTEXT : you can also do the same thing with only 1 file (loaded both on JS and JSX context)
 ```javascript
-
 BRIDGE_NAME = new ClassA();
 function ClassA () { 
     this.bridge = new JSXBridge(this,"BRIDGE_NAME");
@@ -55,8 +56,10 @@ function ClassA () {
 
 ClassA.prototype.log = function (message) {
   if (this.checkContext("js") {
+    //console is defined is JS context so we can use it
     console.log(message);
   } else {
+    //console is NOT defined is JSX context so we mirror the action to the JS side
     this.mirror('log',message);
   }
 }
@@ -65,6 +68,7 @@ ClassA.prototype.log = function (message) {
 > HELLO FROM js
 > HELLO FROM jsx
 ```
+- it's also possible to mirror one function in one contexte to a completely different function of completly different object in the other context
 - easy communicating with between objects on both sides with a custom Observer pattern that let you dispatch custom JSXBridgeEvents with 5 different scopes :
   - JS (only JSXBridge objects on JS context can receive the event)
   - JSX (only JSXBridge objects on JSX context can receive the event)
@@ -72,7 +76,6 @@ ClassA.prototype.log = function (message) {
   - MIRROR (only JSXBridge objects in the MIRROR ("opposite") context (JS or JSX) can receive the event)
   - BOTH (JSXBridge objects in BOTH contexts (JS and JSX) can receive the event) 
 ```javascript
-
 //IMPORTING THE MODULE
   // JS SIDE
   Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");

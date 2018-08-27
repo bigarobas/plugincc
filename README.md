@@ -187,18 +187,20 @@ A collection of handy functions for some  Adobe CC applications :
 
 ## CORE
 This needs a better name (or not ^^).
-This is the full framework which uses the modules above to bring more complete solution to build your panel.
+This is the full framework which uses the modules above to bring a more complete solution to build your panel.
 - Configuration based initialisation of your panel.
   - 1 core json configuration file (that you won't need to change)
-  - 1 plugin json configuration file specific to your panel were you can define :
+  - 1 panel json configuration file specific to your panel were you can define :
     - all your project specific values (jsx files to load, paths, etc.)
     - all your custom key/values
 - event driven CORE launch sequence managing both sides (JS and JSX)
-  - INIT (Core)
-  - LOAD (Config/Modules)
+  - PREPARE (Core)
+  - LOAD (Config/Modules/Libs)
   - BUILD (Modules)
+  - INIT(Core/Config/Modules)
   - START (Core/Modules)
-- JSXBridge : mixed context, and scoped event dispatcher
-- super Debugger ^^
+- JSXBridge : mixed context script files and scoped event dispatcher
+- Multi Channel Debugger
 - JSXHelper(s)
+- es5-shim built-in for JSX (ES3 JSX power up to ES5)
 - (more to come...)

@@ -52,6 +52,18 @@ Debugger.prototype.channel = function (id) {
 
 Debugger.prototype.formatMessage = function(message) {
 	if (this.canChannelId()) {
+		/*
+		var type = typeof message;
+		switch (type) {
+			case "number":
+			case "string":
+				
+				break;
+			default :
+				message = this.getChannelIdFormattedString() + message;
+				break;
+		}
+		*/
 		message = this.getChannelIdFormattedString() + message;
 	}
 	return message;
@@ -63,7 +75,7 @@ Debugger.prototype.getChannelIdFormattedString = function() {
 
 Debugger.prototype.popup = function(message) { 
 	if (this.canAlert()) { 
-		message = this.formatMessage(message);
+		//message = this.formatMessage(message);
 		Debugger._alert(message);
 	}
 	return this;
@@ -206,7 +218,6 @@ Debugger.prototype.logInContext = function() {
 	return Function.prototype.bind.call(console.log, console, context);
 }();
 
-
 Debugger._bridgeName = "Debugger";
 Debugger._bridge = null;
 Debugger._initialized = false;
@@ -244,33 +255,35 @@ Debugger.init = function() {
 	*/
 }
 
-
-
 Debugger._write = function (message) {
-    if (this._bridge.checkContext("jsx")) {
+    if (this.checkContext("jsx")) {
        	$.write(message);
     } else {
         console.log(message);
     } 
 }
 
-
-
 Debugger._writeln = function (message) {
-	if (this._bridge.checkContext("jsx")) {
-		$.writeln(message);
+	if (this.checkContext("jsx")) {
+		//$.writeln(message);
+		this.mirror(
+            '_writeln',
+            message,
+			null
+        );
 	} else {
 		console.log(message);
 	} 
 }
 
 Debugger._alert = function (message) {
-    if (this._bridge.checkContext("jsx")) {
+
+    if (this.checkContext("jsx")) {
         alert(message);
     } else {
-        this._bridge.mirror(
+        this.mirror(
             '_alert',
-            "[from chrome] \\r"+message,
+            message,
 			null
         );
     } 

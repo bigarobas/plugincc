@@ -109,6 +109,21 @@ JSXBridge.prototype.initClient = function (client,bridgeName) {
             return _self.createBridgeEvent(type,data,scope);
         }
     }
+    if (typeof client.mirror == 'undefined') {
+        client.mirror = function(function_name,function_args,callback_or_expression) {
+            return _self.mirror(function_name,function_args,callback_or_expression);
+        }
+    }
+    if (typeof client.getContext == 'undefined') {
+        client.getContext = function() {
+            return _self.getContext();
+        }
+    }
+    if (typeof client.checkContext == 'undefined') {
+        client.checkContext = function (ctx) {
+            return _self.checkContext(ctx);
+        }
+    }
     
 }
 

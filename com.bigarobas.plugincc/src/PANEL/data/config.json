@@ -1,6 +1,7 @@
 {
     "EXTENSION_ID" : "com.bigarobas.plugincc",
     "PANEL_IMPORTS_JSX" : [
+        "PANEL/mixed/MyPanel.jsx",
         "CORE/jsx/libs/JSXHelper/JSXHelper_AEFT.jsx"
     ],
     "PANEL_MODULES_AUTO_DETECT" : true,

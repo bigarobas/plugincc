@@ -1,5 +1,7 @@
 /*
 EVENTS : 
+CORE.JSX.PREPARE.BEGIN
+CORE.JSX.PREPARE.END
 CORE.JSX.INIT.BEGIN
 CORE.JSX.INIT.END
 CORE.JSX.START.BEGIN
@@ -15,13 +17,21 @@ CORE = (function () {
 
         var PlugPlugExternalObjectLib;
         var _bridge = null; 
+        var _extension_path = null;
+       
+        function prepare(path) {
+            _extension_path = path;
+            includeJSX(_extension_path+"/"+"CORE/jsx/libs/json2.jsx");
+            includeJSX(_extension_path+"/"+"CORE/jsx/libs/es5-shim.jsx");
+            includeJSX(_extension_path+"/"+"CORE/mixed/JSXBridge.jsx");
+            return true;
+        }
 
         function init() {
             initBridge();
             dispatchBridgeEvent("CORE.JSX.INIT.BEGIN");
             initDebugger();
             initPlugPlugExternalObjectLib();
-            
             initConfig(); 
             dispatchBridgeEvent("CORE.JSX.INIT.END");
         }
@@ -58,7 +68,6 @@ CORE = (function () {
 
         function start() {
             dispatchBridgeEvent("CORE.JSX.START.BEGIN");
-            DEBUG.channel('core.jsx').log("started");
             dispatchBridgeEvent("CORE.JSX.START.END");
         }
         
@@ -99,6 +108,7 @@ CORE = (function () {
 
         return ( 
                 {
+                    prepare : prepare,
                     init : init,
                     start : start,
                     includeJSX : includeJSX,

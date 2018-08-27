@@ -1,5 +1,3 @@
-
-
 Debugger = function (id,shouldMute,parentChannel) {
     'use strict';
 	if (!Debugger.isInitialized()) Debugger.init();

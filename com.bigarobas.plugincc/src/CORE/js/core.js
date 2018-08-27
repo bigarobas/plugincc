@@ -24,9 +24,8 @@ JSXH = jsxh = new JSXHelper2();
 Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
 CONFIG = config = new Configuration("CONFIG");
 
-Module = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/Module.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
-ModuleDef = (ENV.NODE_ES_TYPE == "es5") ? require(__EXTENTION_PATH__ + "/CORE/js/modules/es5/ModuleDef.js") : require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
-
+Module = require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
+ModuleDef = require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
 
 CORE_Private_Class = function (name) {
 	this._name = name;
@@ -36,6 +35,14 @@ CORE_Private_Class = function (name) {
 	this._modulesDef = [];
 	this._modules_path;
 	this._events_names = [
+		//CORE.JSX EVENTS 
+		"CORE.JSX.PREPARE.BEGIN", 	// SENT FROM CORE.JS
+		"CORE.JSX.PREPARE.END", 	// SENT FROM CORE.JS
+		"CORE.JSX.INIT.BEGIN",
+		"CORE.JSX.INIT.END",
+		"CORE.JSX.START.BEGIN",
+		"CORE.JSX.START.END",
+		//CORE.JS EVENTS
 		"CORE.JS.INIT.BEGIN",
 		"CORE.JS.INIT.END",
 		"CORE.JS.BERIDGE.INIT.BEGIN",
@@ -66,36 +73,11 @@ CORE_Private_Class = function (name) {
 	for (var i = 0 ; i<this._events_names.length ; i++) 
 		this.listen(this._events_names[i],this.onBridgeEventHandler);
 
-	this.listen("CORE.JSX.INIT.BEGIN",this.onBridgeEventHandler);
-	this.listen("CORE.JSX.INIT.END",this.onBridgeEventHandler);
-	this.listen("CORE.JSX.START.BEGIN",this.onBridgeEventHandler);
-	this.listen("CORE.JSX.START.END",this.onBridgeEventHandler);
-
 	//DISPATCH EVENTS IN "JS" SCOPE UNTILE JSX BRIDGE IS INITIALIZED
 	this.dispatch("CORE.JS.INIT.BEGIN",null,"js");
 	this.dispatch("CORE.JS.BERIDGE.INIT.BEGIN",null,"js");
 
 }
-
-//TODO : LET IT BE CALLED BY PANEL
-//init();
-
-
-
-CORE_Private_Class.prototype.init = function() {
-	if (this._hasBeenInitOnce) return;
-	this._hasBeenInitOnce = true;
-	this.initBridgeInJSX();
-}
-
-CORE_Private_Class.prototype.initBridgeInJSX = function() {
-	var _self = this;
-	CSHelper.includeJSX("CORE/mixed/JSXBridge.jsx",function(res) {
-		_self.dispatch("CORE.JS.BERIDGE.INIT.END");
-	});
-}
-
-
 
 CORE_Private_Class.prototype.onBridgeEventHandler = function (event) {
 	if (!DEBUG) {
@@ -108,6 +90,12 @@ CORE_Private_Class.prototype.onBridgeEventHandler = function (event) {
 		case "CORE.JS.INIT.BEGIN" :
 			break;
 
+		case "CORE.JSX.PREPARE.BEGIN" :
+		break;
+		case "CORE.JSX.PREPARE.END" :
+			this.initBridgeInJSX();
+			break;
+			
 		case "CORE.JS.BERIDGE.INIT.BEGIN" :
 			break;
 		case "CORE.JS.BERIDGE.INIT.END" :
@@ -195,12 +183,44 @@ CORE_Private_Class.prototype.onBridgeEventHandler = function (event) {
 	
 }
 
+
+//SHALL BE CALLED EXTERNALLY (BY A PANEL) TO START THE INIT PROCESS
+CORE_Private_Class.prototype.init = function() {
+	if (this._hasBeenInitOnce) return;
+	this._hasBeenInitOnce = true;
+	this.prepareCoreJSX();
+
+}
+
+CORE_Private_Class.prototype.prepareCoreJSX = function() {
+	//DISPATCH EVENTS IN "JS" SCOPE UNTILE JSX BRIDGE IS INITIALIZED
+	this.dispatch("CORE.JSX.PREPARE.BEGIN",null,"js");
+	var _self =this;
+	CSHelper.evaluate('CORE.prepare("'+__EXTENTION_PATH__+'")',function(res) {
+		console.log(res);
+		//DISPATCH EVENTS IN "JS" SCOPE UNTILE JSX BRIDGE IS INITIALIZED
+		_self.dispatch("CORE.JSX.PREPARE.END",null,"js");
+	});
+}
+
+
+CORE_Private_Class.prototype.initBridgeInJSX = function() {
+	var _self = this;
+	CSHelper.includeJSX("CORE/mixed/JSXBridge.jsx",function(res) {
+		_self.dispatch("CORE.JS.BERIDGE.INIT.END");
+	});
+}
+
+
+
+
+
 CORE_Private_Class.prototype.initDebugger = function() {
 	this.dispatch("CORE.JS.DEBUGGER.INIT.BEGIN");
 	DEBUG.channel("core.js").mute(false).setVerbose(true,true,true);
 	DEBUG.channel("core.js-verbose").mute(true);
 	DEBUG.channel("core.js-verbose").log("initDebugger");
-	DEBUG.channel("module").mute(true);
+	DEBUG.channel("module").mute(false);
 	DEBUG.channel("csxs_custom_events").mute(true);
 	DEBUG.channel("csxs_native_events").mute(true);
 	DEBUG.channel("cep_native_events").mute(true);

@@ -15,6 +15,7 @@ When creating a JSXBridge for an Object this object is auto implemented with the
 - checkContext(ctx)
 - listen(type,handler)
 - dispatch(type,data,scope)
+
 These methodes allow us to :
 - easy mirroring methodes on both sides (JS/JSX)
 ```javascript

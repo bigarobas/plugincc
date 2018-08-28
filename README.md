@@ -74,7 +74,7 @@ ClassA.prototype.log = function (message) {
     - a callback function if it's called from JS context (that will be called with the mirror JSX function return value).
     - a callback expression if it's called from JSX context (that will be evaluated with the JS function return value). This expression contain key_words ({bridge} and {args}) which will dynamically be replaced before the expression is evaluated.
 ```javascript
-// imagine we want to synch a MIXED OBJECT (witch exist in both contexts
+// imagine we want to synch a MIXED OBJECT (1 jsx file loaded in both contexts JS & JSX)
 // we need to push the update to the other context and retrieve the new updated state to synch back with the first object
 // 
 this.synch = function(onComplete) {
@@ -106,7 +106,7 @@ this.update(data) {
     //return new state
 }
 ```
-- easy communicating with between objects on both sides with a custom Observer pattern that let you dispatch custom JSXBridgeEvents with 5 different scopes :
+- easy communication between objects in both contexts with a custom Observer pattern that let you dispatch custom JSXBridgeEvents with 5 different scopes :
   - JS (only JSXBridge objects on JS context can receive the event)
   - JSX (only JSXBridge objects on JSX context can receive the event)
   - SAME (only JSXBridge objects in the SAME context (JS or JSX) can receive the event)

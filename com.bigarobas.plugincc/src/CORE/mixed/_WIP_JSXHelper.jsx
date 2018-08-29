@@ -1,19 +1,16 @@
-JSXHelper2 = function () {
-
+JSXHelper_Private_Class = function () {
     'use strict';
-
-	if (!JSXHelper2.isInitialized()) JSXHelper2.init();
+        this._bridge = new JSXBridge(this,"JSXHelper2"); 
 
 }
 
-JSXHelper2.prototype.includeJSX = function (path,callBack) {
-    if (JSXHelper2._ctx == "js") {
-       this._callBridge('includeJSX("'+path+'")');
+JSXHelper_Private_Class.prototype.includeJSX = function (path,callback) {
+    if (this.checkContext("js")) {
+       this.mirror('includeJSX',path,callback);
     } else {
         try {
             var res = $.evalFile(path);
-            alert(path);
-            if (callBack) callBack(res);
+            if (callback) callback(res);
             return (res);
         } catch (e) {
             alert("Exception:" + e);
@@ -21,68 +18,27 @@ JSXHelper2.prototype.includeJSX = function (path,callBack) {
     }
 }
 
-JSXHelper2.prototype.popup = function (message,callBack) {
-    if (JSXHelper2._ctx == "js") {
-       this._callBridge('popup("'+message+'")');
+JSXHelper_Private_Class.prototype.popup = function (message,callback) {
+     if (this.checkContext("js")) {
+       this.mirror('popup',message,callback);
     } else {
         alert(message);
+        if (callback) callback(message);
     }
 }
 
-JSXHelper2.prototype._callBridge = function (expression,callBack) {
 
-    if (typeof JSXHelper2._csInterface == 'undefined') return;
-    var jsxBridgeName = this._jsxBridgeName;
-    if (jsxBridgeName == undefined) jsxBridgeName = JSXHelper2._jsxBridgeName;
-    if (jsxBridgeName == undefined) return;
-    var jsxExp = jsxBridgeName+'.'+expression;
-    JSXHelper2._csInterface.evalScript(jsxExp,callBack);
-}
+JSXHelper2 = (function () {
+	'use strict';
+	return (
+		new JSXHelper_Private_Class()
+	);
+}());
 
-JSXHelper2._ctx = undefined;
-JSXHelper2._jsxBridgeName = undefined;
-JSXHelper2._csInterface = undefined;
-JSXHelper2._initialized = false;
 
-JSXHelper2.isInitialized = function() {
-	return JSXHelper2._initialized;
-}
-
-JSXHelper2.hasCSInterface = function() {
-	return (JSXHelper2._csInterface != undefined);
-}
-
-JSXHelper2.hasJsxBridgeName = function() {
-	return (JSXHelper2._jsxBridgeName != undefined);
-}
-
-JSXHelper2.init = function() {
-	if (JSXHelper2._initialized) return true;
-	JSXHelper2._ctx = (typeof console !== 'undefined') ? "js" : "jsx";
-
-	if (JSXHelper2._ctx == "js") {
-		if (!JSXHelper2.hasCSInterface()) {
-			try {
-				JSXHelper2.setCSInterface(new CSInterface());
-			} catch (e) {
-				JSXHelper2._writeln("JSXHelper2 couldn't find CSInterface Class");
-				JSXHelper2._writeln(e);
-			}
-		}
-	}	
-
-	JSXHelper2._initialized = true;
-}
-
-JSXHelper2.setCSInterface = function (csi) {
-	JSXHelper2._csInterface = csi;
-}
-
-JSXHelper2.setJSXBridgeName = function (bridgeName) {
-	JSXHelper2._jsxBridgeName = bridgeName;
-}
-
-if (typeof console !== 'undefined') module.exports = JSXHelper2;
+if ( typeof module === "object" && typeof module.exports === "object" ) {
+	module.exports = JSXHelper2;
+} 
 
 /*
     

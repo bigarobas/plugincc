@@ -1,0 +1,65 @@
+CoreEvents_Private_Class = function() {}
+
+CoreEvents_Private_Class.prototype.events = [
+    //CORE
+    "CORE.JS.START",
+    "CORE.JS.INIT.BEGIN",
+    "CORE.JS.INIT.END",
+    "CORE.JSX.INIT.BEGIN",
+    "CORE.JSX.INIT.END",
+    "CORE.READY",
+    //ENV
+    "CORE.ENV.JS.INIT.BEGIN",
+    "CORE.ENV.JS.INIT.END",
+    "CORE.ENV.JSX.INIT.BEGIN",
+    "CORE.ENV.JSX.INIT.END",
+    "CORE.ENV.SYNCH.BEGIN",
+    "CORE.ENV.SYNCH.END",
+    "CORE.ENV.READY",
+    //DEBUGGER
+    "CORE.DEBUGGER.JS.INIT.BEGIN",
+    "CORE.DEBUGGER.JS.INIT.END",
+    "CORE.DEBUGGER.JSX.INIT.BEGIN",
+    "CORE.DEBUGGER.JSX.INIT.END",
+    "CORE.DEBUGGER.READY",
+    //CONFIG
+    "CORE.CONFIG.JS.INIT.BEGIN",
+    "CORE.CONFIG.JS.INIT.END",
+    "CORE.CONFIG.JS.CORE.BEGIN",
+    "CORE.CONFIG.JS.CORE.END",
+    "CORE.CONFIG.JS.PANEL.BEGIN",
+    "CORE.CONFIG.JS.PANEL.END",
+    "CORE.CONFIG.JSX.INIT.BEGIN",
+    "CORE.CONFIG.JSX.INIT.END",
+    "CORE.CONFIG.INIT.SYNCH.BEGIN",
+    "CORE.CONFIG.INIT.SYNCH.END",
+    "CORE.CONFIG.READY",
+    //INCLUDES
+    "CORE.INCLUDES.JSX.CORE.BEGIN",
+    "CORE.INCLUDES.JSX.CORE.END",
+    "CORE.INCLUDES.JSX.PANEL.BEGIN",
+    "CORE.INCLUDES.JSX.PANEL.END",
+    "CORE.INCLUDES.READY",
+    //MODULES
+    "CORE.MODULES.JS.LOAD.BEGIN",
+    "CORE.MODULES.JS.LOAD.END",
+    "CORE.MODULES.JS.BUILD.BEGIN",
+    "CORE.MODULES.JS.BUILD.END",
+    "CORE.MODULES.JS.INIT.BEGIN",
+    "CORE.MODULES.JS.INIT.END",
+    "CORE.MODULES.JS.START.BEGIN",
+    "CORE.MODULES.JS.START.END",
+    "CORE.MODULES.READY"
+];
+
+CoreEvents = (function () {
+	'use strict';
+	return (
+		new CoreEvents_Private_Class()
+	);
+}());
+
+if ( typeof module === "object" && typeof module.exports === "object" ) {
+	module.exports = CoreEvents;
+}
+

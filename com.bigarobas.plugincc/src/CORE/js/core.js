@@ -3,12 +3,16 @@ __EXTENTION_PATH__ = __CSI__.getSystemPath(SystemPath.EXTENSION);
 
 $ =  require(__EXTENTION_PATH__ + "/CORE/js/libs/jquery-2.0.2.min.js");
 
+JSXBridgeEvent = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridgeEvent.jsx");
+
 JSXBridge = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
 JSXBridge.init(__CSI__);
 
+CoreEvents = require(__EXTENTION_PATH__ + "/CORE/mixed/CoreEvents.jsx");
+
 Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
 Debugger.setBridgeName("Debugger");
-DEBUG = debug = new Debugger();
+DEBUG = debug = null;
 
 CSInterfaceHelper =  require(__EXTENTION_PATH__ + "/CORE/js/libs/CSInterfaceHelper.js");
 CSHelper = new CSInterfaceHelper(__CSI__);
@@ -16,10 +20,7 @@ CSHelper = new CSInterfaceHelper(__CSI__);
 Environment =  require(__EXTENTION_PATH__ + "/CORE/mixed/Environment.jsx");
 ENV = env = new Environment(__CSI__,'ENV');
 
-JSXHelper2 =  require(__EXTENTION_PATH__ + "/CORE/mixed/_WIP_JSXHelper.jsx");
-JSXHelper2.setJSXBridgeName("JSXH");
-JSXHelper2.setCSInterface(__CSI__);
-JSXH = jsxh = new JSXHelper2();
+JSXHelper2 = JSXH = jsxh = require(__EXTENTION_PATH__ + "/CORE/mixed/_WIP_JSXHelper.jsx");
 
 Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
 CONFIG = config = new Configuration("CONFIG");
@@ -28,64 +29,13 @@ Module = require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");
 ModuleDef = require(__EXTENTION_PATH__ + "/CORE/js/modules/ModuleDef.js");
 
 CORE_Private_Class = function (name) {
+
 	this._name = name;
 	this._hasBeenStartedOnce = false;
 	this._isInitialized = false;
 	this._modules = [];
 	this._modulesDef = [];
 	this._modules_path;
-	this._events_names = [
-		//CORE
-		"CORE.JS.START",
-		"CORE.JS.INIT.BEGIN",
-		"CORE.JS.INIT.END",
-		"CORE.JSX.INIT.BEGIN",
-		"CORE.JSX.INIT.END",
-		"CORE.READY",
-		//ENV
-		"CORE.JS.ENV.INIT.BEGIN",
-		"CORE.JS.ENV.INIT.END",
-		"CORE.JSX.ENV.INIT.BEGIN",
-		"CORE.JSX.ENV.INIT.END",
-		"CORE.ENV.SYNCH.BEGIN",
-		"CORE.ENV.SYNCH.END",
-		"CORE.ENV.READY",
-		//DEBUGGER
-		"CORE.JS.DEBUGGER.INIT.BEGIN",
-		"CORE.JS.DEBUGGER.INIT.END",
-		"CORE.JSX.DEBUGGER.INIT.BEGIN",
-		"CORE.JSX.DEBUGGER.INIT.END",
-		"CORE.DEBUGGER.READY",
-		//CONFIG
-		"CORE.JS.CONFIG.INIT.BEGIN",
-		"CORE.JS.CONFIG.INIT.END",
-		"CORE.JS.CONFIG.CORE.BEGIN",
-		"CORE.JS.CONFIG.CORE.END",
-		"CORE.JS.CONFIG.PANEL.BEGIN",
-		"CORE.JS.CONFIG.PANEL.END",
-		"CORE.JSX.CONFIG.INIT.BEGIN",
-		"CORE.JSX.CONFIG.INIT.END",
-		"CORE.CONFIG.INIT.SYNCH.BEGIN",
-		"CORE.CONFIG.INIT.SYNCH.END",
-		"CORE.CONFIG.READY",
-		//INCLUDES
-		"CORE.INCLUDE.JSX.CORE.BEGIN",
-		"CORE.INCLUDE.JSX.CORE.END",
-		"CORE.INCLUDE.JSX.PANEL.BEGIN",
-		"CORE.INCLUDE.JSX.PANEL.END",
-		"CORE.INCLUDE.JSX.READY",
-		//MODULES
-		"CORE.JS.MODULES.LOAD.BEGIN",
-		"CORE.JS.MODULES.LOAD.END",
-		"CORE.JS.MODULES.BUILD.BEGIN",
-		"CORE.JS.MODULES.BUILD.END",
-		"CORE.JS.MODULES.INIT.BEGIN",
-		"CORE.JS.MODULES.INIT.END",
-		"CORE.JS.MODULES.START.BEGIN",
-		"CORE.JS.MODULES.START.END",
-		"CORE.MODULES.READY"
-		
-	];
 
 	this.bridge = new JSXBridge(this,"CORE");
 
@@ -97,7 +47,7 @@ CORE_Private_Class = function (name) {
 CORE_Private_Class.prototype.onCoreBridgeEventHandler = function (event) {
 	
 	if (!DEBUG) {
-		console.log(event.bridgeName,event.context,event.type);
+		//console.log(event.bridgeName,event.context,event.type);
 	} else {
 		DEBUG.channel("core.js").log(event.type);
 	}
@@ -113,15 +63,15 @@ CORE_Private_Class.prototype.onCoreBridgeEventHandler = function (event) {
 			this.initDebugger();	
 			break;
 
-		case "CORE.JS.DEBUGGER.INIT.END" :
+		case "CORE.DEBUGGER.JS.INIT.END" :
 			this.dispatch("CORE.DEBUGGER.READY");
 			this.loadCoreConfig();
 			break;
 
-		case "CORE.JS.CONFIG.CORE.END" :
+		case "CORE.CONFIG.JS.CORE.END" :
 				this.loadPanelConfig();
 			break;
-		case "CORE.JS.CONFIG.PANEL.END" :
+		case "CORE.CONFIG.JS.PANEL.END" :
 				this.synchInitialConf();
 			break;
 		
@@ -130,28 +80,28 @@ CORE_Private_Class.prototype.onCoreBridgeEventHandler = function (event) {
 			this.includeCoreJsx();
 			break;
 		
-		case "CORE.INCLUDE.JSX.CORE.END" :
+		case "CORE.INCLUDES.JSX.CORE.END" :
 			this.includePanelJsx();
 			break;
 
-		case "CORE.INCLUDE.JSX.PANEL.END" :
-			this.dispatch("CORE.INCLUDE.JSX.READY");
+		case "CORE.INCLUDES.JSX.PANEL.END" :
+			this.dispatch("CORE.INCLUDES.READY");
 			this.loadModules();
 			break;
 
-		case "CORE.JS.MODULES.LOAD.END" :
+		case "CORE.MODULES.JS.LOAD.END" :
 			this.buildModules();
 			break;
 
-		case "CORE.JS.MODULES.BUILD.END" :
+		case "CORE.MODULES.JS.BUILD.END" :
 			this.initModules();
 			break;
 
-		case "CORE.JS.MODULES.INIT.END" :
+		case "CORE.MODULES.JS.INIT.END" :
 			this.startModules();
 			break;
 
-		case "CORE.JS.MODULES.START.END" :
+		case "CORE.MODULES.JS.START.END" :
 			this.dispatch("CORE.MODULES.READY");
 			this.dispatch("CORE.JS.START.END");
 			this._isInitialized = true;
@@ -171,25 +121,21 @@ CORE_Private_Class.prototype.isReady = function() {
 
 //SHALL BE CALLED EXTERNALLY (BY A PANEL) TO START THE INIT PROCESS
 CORE_Private_Class.prototype.start = function() {
-	
 	if (this._hasBeenStartedOnce) return;
 	this._hasBeenStartedOnce = true;
 	
-	for (var i = 0 ; i<this._events_names.length ; i++) 
-		this.listen(this._events_names[i],this.onCoreBridgeEventHandler);
+	for (var i = 0 ; i<CoreEvents.events.length ; i++) 
+		this.listen(CoreEvents.events[i],this.onCoreBridgeEventHandler);
 
 	//DISPATCH EVENTS IN "JS" SCOPE UNTILE JSX BRIDGE IS INITIALIZED
 	this.dispatch("CORE.JS.START",null,"js"); // A BIT LATE ^^
-
 	this.init();
 }
-
 
 CORE_Private_Class.prototype.init = function() {
 	this.dispatch("CORE.JS.INIT.BEGIN",null,"js");
 	CSHelper.evaluate('CORE.init("'+__EXTENTION_PATH__+'")');
 }
-
 
 CORE_Private_Class.prototype.synchEnv = function() {
 	this.dispatch("CORE.ENV.SYNCH.BEGIN");
@@ -201,70 +147,68 @@ CORE_Private_Class.prototype.synchEnv = function() {
 }
 
 CORE_Private_Class.prototype.initConfig = function() {
-	this.dispatch("CORE.JS.CONFIG.INIT.BEGIN");
+	this.dispatch("CORE.CONFIG.JS.INIT.BEGIN");
 	this.loadCoreConfig();
 }
 
 CORE_Private_Class.prototype.initDebugger = function() {
-	this.dispatch("CORE.JS.DEBUGGER.INIT.BEGIN");
-	DEBUG.channel("core.js").mute(false).setVerbose(true,true,true);
+	this.dispatch("CORE.DEBUGGER.JS.INIT.BEGIN");
+	DEBUG = debug = new Debugger();
+	DEBUG.channel("core.js").setVerbose(true,true,true);
+	DEBUG.channel("core.js").mute(true);
 	DEBUG.channel("core.js-verbose").mute(true);
-	DEBUG.channel("core.js-verbose").log("initDebugger");
 	DEBUG.channel("module").mute(true);
 	DEBUG.channel("csxs_custom_events").mute(true);
 	DEBUG.channel("csxs_native_events").mute(true);
 	DEBUG.channel("cep_native_events").mute(true);
-	this.dispatch("CORE.JS.DEBUGGER.INIT.END");
+	this.dispatch("CORE.DEBUGGER.JS.INIT.END");
 }
 
 CORE_Private_Class.prototype.loadCoreConfig = function() {
-	this.dispatch("CORE.JS.CONFIG.CORE.BEGIN");
+	this.dispatch("CORE.CONFIG.JS.CORE.BEGIN");
 	DEBUG.channel("core.js-verbose").log("loadCoreConfig");
 	var _self = this;
 	$.getJSON("../../CORE/data/config.json",function(json) {
 		DEBUG.channel("core.js-verbose").log("onCoreConfigLoaded");
 		CONFIG.update(json);
-		_self.dispatch("CORE.JS.CONFIG.CORE.END");
+		_self.dispatch("CORE.CONFIG.JS.CORE.END");
 	});
 }
 
-
-
-
-
 CORE_Private_Class.prototype.includeCoreJsx = function() {
-	this.dispatch("CORE.INCLUDE.JSX.CORE.BEGIN");
+	this.dispatch("CORE.INCLUDES.JSX.CORE.BEGIN");
 	DEBUG.channel("core.js-verbose").log("includeCoreJsx");
 	var _self = this;
 	CSHelper.includeJSXInOrder(CONFIG.get("CORE_IMPORTS_JSX"),function(res) {
 		DEBUG.channel("core.js-verbose").log("onIncludeCoreJsxComplete");
-		_self.dispatch("CORE.INCLUDE.JSX.CORE.END");
+		_self.dispatch("CORE.INCLUDES.JSX.CORE.END");
 	});
 }
 
 CORE_Private_Class.prototype.loadPanelConfig = function() {
-	this.dispatch("CORE.JS.CONFIG.PANEL.BEGIN");
+	this.dispatch("CORE.CONFIG.JS.PANEL.BEGIN");
 	DEBUG.channel("core.js-verbose").log("loadPanelConfig");
 	var _self = this;
 	$.getJSON("../../PANEL/data/config.json",function(json) {
 		DEBUG.channel("core.js-verbose").log("onPanelConfigLoaded").json(json);
 		CONFIG.update(json);
-		_self.dispatch("CORE.JS.CONFIG.PANEL.END");
+		_self.dispatch("CORE.CONFIG.JS.PANEL.END");
 	});
 }
 
 CORE_Private_Class.prototype.includePanelJsx = function() {
 	DEBUG.channel("core.js-verbose").log("includePanelJsx");
-	this.dispatch("CORE.INCLUDE.JSX.PANEL.BEGIN");
+	this.dispatch("CORE.INCLUDES.JSX.PANEL.BEGIN");
 	var imports_list = CONFIG.get("PANEL_IMPORTS_JSX");
 	//DEBUG.channel("core.js-verbose").log(imports_list);
 	var _self = this;
 	CSHelper.includeJSXInOrder(imports_list,function(res) {
 		DEBUG.channel("core.js-verbose").log("onIncludePanelJsxComplete");
-		_self.dispatch("CORE.INCLUDE.JSX.PANEL.END");
+		_self.dispatch("CORE.INCLUDES.JSX.PANEL.END");
 		
 	});
 }
+
 CORE_Private_Class.prototype.synchInitialConf = function() {
 	this.dispatch("CORE.CONFIG.INIT.SYNCH.BEGIN");
 	var _self = this;
@@ -275,14 +219,13 @@ CORE_Private_Class.prototype.synchInitialConf = function() {
 }
 
 CORE_Private_Class.prototype.loadModules = function() {
-	this.dispatch("CORE.JS.MODULES.LOAD.BEGIN");
+	this.dispatch("CORE.MODULES.JS.LOAD.BEGIN");
 	var auto = CONFIG.get("PANEL_MODULES_AUTO_DETECT");
 	if (auto) {
 		this.getModulesFolders();
 	} else {
 		// TODO : HANDLE PANEL_MODULES_AUTO_DETECT = false
 	}
-	
 }
 
 CORE_Private_Class.prototype.getModulesFolders = function() {
@@ -330,12 +273,12 @@ CORE_Private_Class.prototype.includeModulesJsx = function() {
 	var _self = this;
 	CSHelper.includeJSXInOrder(jsx_paths,function(res) {
 		DEBUG.channel("core.js-verbose").log("onIncludeModulesJsxComplete");
-		_self.dispatch("CORE.JS.MODULES.LOAD.END");
+		_self.dispatch("CORE.MODULES.JS.LOAD.END");
 	});
 }
 
 CORE_Private_Class.prototype.buildModules = function() {
-	this.dispatch("CORE.JS.MODULES.BUILD.BEGIN");
+	this.dispatch("CORE.MODULES.JS.BUILD.BEGIN");
 	var n = this._modulesDef.length;
 	var def;
 	var m;
@@ -344,23 +287,22 @@ CORE_Private_Class.prototype.buildModules = function() {
 		m = def.build();
 		this._modules.push(m);
 	}
-	this.dispatch("CORE.JS.MODULES.BUILD.END");
+	this.dispatch("CORE.MODULES.JS.BUILD.END");
 }
 
 CORE_Private_Class.prototype.initModules = function() {
-	this.dispatch("CORE.JS.MODULES.INIT.BEGIN");
+	this.dispatch("CORE.MODULES.JS.INIT.BEGIN");
 	var n = this._modules.length;
 	var m;
 	for (var i=0;i<n;i++) {
 		m = this._modules[i];
 		m.init();
 	}
-	this.dispatch("CORE.JS.MODULES.INIT.END");
+	this.dispatch("CORE.MODULES.JS.INIT.END");
 }
 
-
 CORE_Private_Class.prototype.startModules = function() {
-	this.dispatch("CORE.JS.MODULES.START.BEGIN");
+	this.dispatch("CORE.MODULES.JS.START.BEGIN");
 	DEBUG.channel("core.js-verbose").log("startModules");
 	var n = this._modules.length;
 	var m;
@@ -368,17 +310,14 @@ CORE_Private_Class.prototype.startModules = function() {
 		m = this._modules[i];
 		m.start();
 	}
-	this.dispatch("CORE.JS.MODULES.START.END");
-	
+	this.dispatch("CORE.MODULES.JS.START.END");
 }
 
 CORE = (function () {
 	'use strict';
-
 	return (
 		new CORE_Private_Class()
 	);
-
 }());
 
 /*

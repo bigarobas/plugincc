@@ -1,5 +1,5 @@
 DEBUG = debug = null;
-JSXH = jsxh = null;
+JSXH = jsxh = JSXHelper2 = null;
 CONFIG = config = null;
 ENV = env = null;
 
@@ -12,6 +12,26 @@ CORE_Private_Class = function () {
         this._extension_path = null;
 }
 
+CORE_Private_Class.prototype.onCoreBridgeEventHandler = function (event) {
+	
+	if (!DEBUG) {
+		//$.write(event.bridgeName,event.context,event.type);
+	} else {
+		DEBUG.channel("core.jsx").log(event.type);
+	}
+
+	switch (event.type) {
+        case "CORE.INCLUDES.READY" :
+            this.initIncludedJsx();
+            break;
+		default:
+			break;
+		
+	}
+	
+}
+
+
 CORE_Private_Class.prototype.init = function(path) {
 
     this._extension_path = path;
@@ -19,10 +39,15 @@ CORE_Private_Class.prototype.init = function(path) {
     this.activatePlugPlugExternalObjectLib();
 
     this.includeJSX(this._extension_path+"/"+"CORE/jsx/libs/json2.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/jsx/libs/es5-shim.jsx");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsx/libs/es5-polyfill.jsx");
+    this.includeJSX(this._extension_path+"/"+"CORE/mixed/JSXBridgeEvent.jsx");
     this.includeJSX(this._extension_path+"/"+"CORE/mixed/JSXBridge.jsx");
+    this.includeJSX(this._extension_path+"/"+"CORE/mixed/CoreEvents.jsx");
 
     this._bridge = new JSXBridge(this,"CORE"); 
+    for (var i = 0 ; i<CoreEvents.events.length ; i++) 
+		this.listen(CoreEvents.events[i],this.onCoreBridgeEventHandler);
+    
     this.dispatch("CORE.JSX.INIT.BEGIN"); //A LITTLE LATE ^^
 
     this.includeJSX(this._extension_path+"/"+"CORE/mixed/Environment.jsx");
@@ -51,24 +76,29 @@ CORE_Private_Class.prototype.activatePlugPlugExternalObjectLib = function() {
 }
 
 CORE_Private_Class.prototype.initEnv = function() {
-    this.dispatch("CORE.JSX.ENV.INIT.BEGIN"); 
+    this.dispatch("CORE.ENV.JSX.INIT.BEGIN"); 
     ENV = env = new Environment(null,'ENV');
-    this.dispatch("CORE.JSX.ENV.INIT.END"); 
+    this.dispatch("CORE.ENV.JSX.INIT.END"); 
 }
 
 CORE_Private_Class.prototype.initDebugger = function() {
-    this.dispatch("CORE.JSX.DEBUGGER.INIT.BEGIN"); 
+    this.dispatch("CORE.DEBUGGER.JSX.INIT.BEGIN"); 
     Debugger.setBridgeName("Debugger");
     DEBUG = debug = Debug = new Debugger();
     DEBUG.channel('core.jsx').setVerbose(true,true,false);
-    this.dispatch("CORE.JSX.DEBUGGER.INIT.END"); 
+    DEBUG.channel('core.jsx').mute(true);
+    this.dispatch("CORE.DEBUGGER.JSX.INIT.END"); 
     //JSXH = new JSXHelper2()
 }
 
 CORE_Private_Class.prototype.initConfig = function() {
-    this.dispatch("CORE.JSX.CONFIG.INIT.BEGIN"); 
+    this.dispatch("CORE.CONFIG.JSX.INIT.BEGIN"); 
     CONFIG = config = new Configuration("CONFIG");
-    this.dispatch("CORE.JSX.CONFIG.INIT.END"); 
+    this.dispatch("CORE.CONFIG.JSX.INIT.END"); 
+}
+
+CORE_Private_Class.prototype.initIncludedJsx = function(path) {
+    JSXH = jsxh = JSXHelper2;
 }
 
 CORE_Private_Class.prototype.includeJSX = function(path) {

@@ -86,7 +86,7 @@ CORE_Private_Class.prototype.initDebugger = function() {
     Debugger.setBridgeName("Debugger");
     DEBUG = debug = Debug = new Debugger();
     DEBUG.channel('core.jsx').setVerbose(true,true,false);
-    DEBUG.channel('core.jsx').mute(true);
+    DEBUG.channel('core.jsx').mute(false);
     this.dispatch("CORE.DEBUGGER.JSX.INIT.END"); 
     //JSXH = new JSXHelper2()
 }
@@ -126,6 +126,10 @@ CORE_Private_Class.prototype.includeJSXFolder = function(path) {
             }
         }
     }
+}
+
+CORE_Private_Class.prototype.test = function(message) {
+    alert("test bridge call jsx : "+message);
 }
 
 CORE = (function () {

@@ -61,6 +61,11 @@ JSXBridge.prototype.initClient = function (client,bridgeName) {
             return _self.mirror(function_name,function_args,callback_or_expression);
         }
     }
+    if (typeof client.bridgeCall == 'undefined') {
+        client.bridgeCall = function(bridge_name,function_name,function_args,callback_or_expression,scope) {
+            return _self.bridgeCall(bridge_name,function_name,function_args,callback_or_expression,scope);
+        }
+    }
     if (typeof client.getContext == 'undefined') {
         client.getContext = function() {
             return _self.getContext();
@@ -123,6 +128,10 @@ JSXBridge.prototype.mirror = function (function_name,function_args,callback_or_e
     JSXBridge.mirror(this,function_name,function_args,callback_or_expression);  
 }
 
+JSXBridge.prototype.bridgeCall = function (bridge_name,function_name,function_args,callback_or_expression,scope) {
+    return JSXBridge.bridgeCall(bridge_name,function_name,function_args,callback_or_expression,scope);  
+}
+
 //####################################################
 // JSXBridge statics
 //####################################################
@@ -165,30 +174,39 @@ JSXBridge.init = function(csi) {
                 JSXBridge.setCSInterface(csi);
             }
 		}
-        JSXBridge._csInterface.addEventListener(JSXBridgeEvent.MIRROR_FROM_JSX,JSXBridge.on_MIRROR_FROM_JSX)
+        JSXBridge._csInterface.addEventListener(JSXBridgeEvent.BRIDGE_CALL,JSXBridge.on_BRIDGE_CALL)
     }
 
     return true;
 }
 
-JSXBridge.on_MIRROR_FROM_JSX = function (event) {
+JSXBridge.on_BRIDGE_CALL = function (event) {
+    var current_context = JSXBridge.getContext();
     var bridgeName = event.data.bridgeName;
     var mirror = JSXBridge._mirrorsMap[bridgeName];
-    if (!mirror) return false;
+    if (!mirror) {
+        return false;
+    } 
     var functionName = event.data.functionName;
     var bridgeFunction =  mirror.client[functionName];
-    if (!bridgeFunction) return false;
+    if (!bridgeFunction) {
+        return false;
+    } 
     var functionArgs = event.data.functionArgs;
     var bridgeCallResult = bridgeFunction.call(mirror.client,functionArgs);
-    if (!event.data.callbackExpression) return false;
-    var callbackExpression = event.data.callbackExpression;
-    if (!callbackExpression) return false;
+    if (current_context == "jsx") {
+        return bridgeCallResult; 
+    }
+    var callbackExpression = event.data.callback;
+    if (!callbackExpression) {
+        return bridgeCallResult;
+    }
     var regex = new RegExp(/{bridge}/g);
 	callbackExpression = callbackExpression.replace(regex,bridgeName);
 	regex = new RegExp(/{args}/g);
 	callbackExpression = callbackExpression.replace(regex,JSXBridge.argsToString(bridgeCallResult));
     JSXBridge._csInterface.evalScript(callbackExpression);
-    return true;
+    return bridgeCallResult;
 }
 
 JSXBridge.register = function (mirror) {
@@ -235,7 +253,7 @@ JSXBridge.argsToString = function (args) {
             result = JSXBridge.stringify(args);
             break;
     }
-    return result
+    return result;
 }
 
 JSXBridge.checkContext = function (ctx) {
@@ -285,30 +303,19 @@ JSXBridge.unRegisterAsListener = function (bridge,type,handler) {
 }
 
 JSXBridge.dispatchBridgeEvent = function (bridgeEvent) {
-    if (JSXBridge.checkContext("jsx")) {
-        if (bridgeEvent.scope == JSXBridgeEventScope.JSX || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
-           JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
-        }
-        if (bridgeEvent.scope != JSXBridgeEventScope.JSX && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
-           
-            JSXBridge.mirror_from_jsx(
-                JSXBridge._bridge,
-                '_dispatchBridgeEventAmongListeners',
-                bridgeEvent.mirrorClone()
-            );
-        }
-    } else {
-        if (bridgeEvent.scope == JSXBridgeEventScope.JS || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
-           JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
-        }
-        if (bridgeEvent.scope != JSXBridgeEventScope.JS && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
-            JSXBridge.mirror_from_js(
-                JSXBridge._bridge,
-                '_dispatchBridgeEventAmongListeners',
-                bridgeEvent.mirrorClone()
-            );
-        }
+    var current_context = JSXBridge.getContext();
+    if (bridgeEvent.scope == current_context || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
+        JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
     }
+
+    if (bridgeEvent.scope != current_context && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
+        JSXBridge.mirror(
+            JSXBridge._bridge,
+            '_dispatchBridgeEventAmongListeners',
+            bridgeEvent.mirrorClone()
+        );
+    }
+
 }
 
 JSXBridge.createBridgeEvent = function (type,data,scope) {
@@ -324,48 +331,49 @@ JSXBridge.getOrCreateBridgeEventHandlersList = function(type) {
 }
 
 JSXBridge.mirror = function (bridge,function_name,function_args,callback_or_expression) {
-	if (JSXBridge.checkContext("jsx")) {
-            JSXBridge.mirror_from_jsx(bridge,function_name,function_args,callback_or_expression);
-    } else {
-            JSXBridge.mirror_from_js(bridge,function_name,function_args,callback_or_expression);
-    }
+    return JSXBridge.bridgeCall(bridge.bridgeName,function_name,function_args,callback_or_expression);
 }
 
-JSXBridge.mirror_from_jsx = function(bridge,function_name,function_args,callback_or_expression) {
+JSXBridge.bridgeCall = function (bridge_name,function_name,function_args,callback_or_expression,scope) {
+    if (!scope) scope = JSXBridgeEventScope.MIRROR;
+    var current_context = JSXBridge.getContext();
     var args_str = JSXBridge.argsToString(function_args);
     var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
     var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
-    var data = JSXBridge.stringify({
-        bridgeName : bridge.bridgeName,
+
+    var data = {
+        context : current_context,
+        scope : scope,
+        bridgeName : bridge_name,
         functionName : function_name,
         functionArgs : function_args,
-        callbackExpression : callback_expression
-    });
-	if (JSXBridge.checkContext("jsx")) {
-        var event = new CSXSEvent();
-        event.type = JSXBridgeEvent.MIRROR_FROM_JSX,
+        callback : callback_expression
+    };
+
+    var callResult = null;
+
+    var event = (JSXBridge.checkContext("jsx")) ? new CSXSEvent() : new JSXBridgeEvent();
+    event.type = JSXBridgeEvent.BRIDGE_CALL;
+    
+    if (scope == current_context || scope == JSXBridgeEventScope.BOTH || scope == JSXBridgeEventScope.SAME) {
         event.data = data;
-        event.dispatch();
-        return true;
+        callResult = JSXBridge.on_BRIDGE_CALL(event);
     }
-    return false;
+
+    if (scope != current_context && scope != JSXBridgeEventScope.SAME) {
+        if (JSXBridge.checkContext("jsx")) {
+            event.data = JSXBridge.stringify(data);
+            event.dispatch();
+        } else {
+            event.data = data;
+            var expr = 'JSXBridge.on_BRIDGE_CALL('+event+')';
+            JSXBridge._csInterface.evalScript(expr,callback_function);
+        }
+    }
+
+    return callResult;
 }
 
-JSXBridge.mirror_from_js = function(bridge,function_name,function_args,callback_or_expression) {
-    var args_str = JSXBridge.argsToString(function_args);
-    var callback_function = (typeof callback_or_expression == 'function') ? callback_or_expression : null;
-    var callback_expression = (typeof callback_or_expression == 'string') ? callback_or_expression : null;
-	if (JSXBridge.checkContext("js")) {
-         if (typeof JSXBridge._csInterface !== 'undefined') {
-			if (bridge.bridgeName != undefined) {
-				var expr = bridge.bridgeName+'.'+function_name+'('+args_str+')';
-				JSXBridge._csInterface.evalScript(expr,callback_function);
-			}
-		}
-        return true;
-    }
-    return false;
-}
 
 //FROM :
 //https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json
@@ -392,8 +400,6 @@ JSXBridge.stringify = function(obj) {
     cache = null; // Enable garbage collection
     return result;
 }
-
-
 
 if ( typeof module === "object" && typeof module.exports === "object" ) {
 	module.exports = JSXBridge;

@@ -12,7 +12,7 @@ JSXBridgeEvent = function (type,data,scope) {
     this.scope = scope;
 }
 
-JSXBridgeEvent.MIRROR_FROM_JSX = "JSXBridgeEvent_MIRROR_FROM_JSX";
+JSXBridgeEvent.BRIDGE_CALL = "JSXBridgeEvent_BRIDGE_CALL";
 
 JSXBridgeEvent.createFromString = function (event_string){
     var parsed = JSON.parse(event_string);

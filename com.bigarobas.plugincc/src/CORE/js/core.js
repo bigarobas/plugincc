@@ -155,7 +155,7 @@ CORE_Private_Class.prototype.initDebugger = function() {
 	this.dispatch("CORE.DEBUGGER.JS.INIT.BEGIN");
 	DEBUG = debug = new Debugger();
 	DEBUG.channel("core.js").setVerbose(true,true,true);
-	DEBUG.channel("core.js").mute(true);
+	DEBUG.channel("core.js").mute(false);
 	DEBUG.channel("core.js-verbose").mute(true);
 	DEBUG.channel("module").mute(true);
 	DEBUG.channel("csxs_custom_events").mute(true);
@@ -311,6 +311,10 @@ CORE_Private_Class.prototype.startModules = function() {
 		m.start();
 	}
 	this.dispatch("CORE.MODULES.JS.START.END");
+}
+
+CORE_Private_Class.prototype.test = function(message) {
+    alert("test bridge call js : "+message);
 }
 
 CORE = (function () {

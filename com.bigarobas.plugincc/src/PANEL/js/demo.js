@@ -1,4 +1,3 @@
-
 CORE.addBridgeEventListener("CORE.ENV.READY",onCoreEventHandler);
 CORE.addBridgeEventListener("CORE.DEBUGGER.READY",onCoreEventHandler);
 CORE.addBridgeEventListener("CORE.CONFIG.READY",onCoreEventHandler);
@@ -29,7 +28,8 @@ function onCoreEventHandler(event) {
         case "CORE.MODULES.READY":
             break;
         case "CORE.READY":
-            DEBUG.log("GO GO GO");
+            _bridge = new JSXBridge(this,"demo");
+            _bridge.bridgeCall("CORE","test","coucou",null,"both");
             break;
         default : 
             break;

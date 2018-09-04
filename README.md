@@ -11,7 +11,7 @@ It probably needs a better name ^^
 This is the central module around which this toolset is made.
 When creating a JSXBridge for an Object this object is auto implemented with the following methodes :
 - mirror(function_name,function_args,callback_or_expression)
-- bridgeCall(bridge_name,function_name,function_args,callback_or_expression,scope)
+- bridgeCall(client_id,function_name,function_args,callback_or_expression,scope)
 - getContext() 
 - checkContext(ctx)
 - listen(type,handler)
@@ -26,7 +26,7 @@ These methodes allow us to :
 a = new ClassA();
 a.log("HELLO FROM JS");
 function ClassA () { 
-    this.bridge = new JSXBridge(this,"BRIDGE_NAME_X");
+    this.bridge = new JSXBridge(this,"BRIDGE_ID_X");
     this.log = function(message) {
       //console is defined is JS context so we can use it
       console.log(message);
@@ -37,7 +37,7 @@ function ClassA () {
 b = new ClassB();
 b.log("HELLO FROM JSX");
 function ClassB () { 
-    this.bridge = new JSXBridge(this,"BRIDGE_NAME_X");
+    this.bridge = new JSXBridge(this,"BRIDGE_ID_X");
     this.log = function(message) {
       //console is NOT defined is JSX context so we mirror the action to the JS side
       this.mirror('log',message);
@@ -50,9 +50,11 @@ function ClassB () {
 ```
 - MIXED CONTEXT : you can also do the same thing with only 1 file (loaded both on JS and JSX context)
 ```javascript
-BRIDGE_NAME = new ClassA();
+var a = new ClassA();
+a.log();
+
 function ClassA () { 
-    this.bridge = new JSXBridge(this,"BRIDGE_NAME_X");
+    this.bridge = new JSXBridge(this,"BRIDGE_ID_X");
     this.log("HELLO FROM "+this.getContext());
 }
 
@@ -78,32 +80,32 @@ ClassA.prototype.log = function (message) {
     - BOTH (in BOTH contexts (JS and JSX)) 
 ```javascript
 //on JS side
-a = new ClassA();
+var a = new ClassA();
 function ClassA () { 
-    this.bridge = new JSXBridge(this,"BRIDGE_NAME_X");
+    this.bridge = new JSXBridge(this,"BRIDGE_ID_X");
     this.doSomething = function() {
         //DOES SOMETHING
     }
 }
 
 //on JSX side
-b = new ClassB();
+var b = new ClassB();
 function ClassB () { 
-    this.bridge = new JSXBridge(this,"BRIDGE_NAME_X");
+    this.bridge = new JSXBridge(this,"BRIDGE_ID_X");
     this.doSomething = function() {
       //DOES SOMETHING ELSE
     }
 }
 
 //SOME WHERE IN JS OR JSX CONTEXT
-c = new ClassC();
+var c = new ClassC();
 function ClassC () { 
-    this.bridge = new JSXBridge(this,"ANOTHER_BRIDGE_NAME");
-    this.bridgeCall("BRIDGE_NAME_X","doSomething",{some_args_if_needed},callback_function_or_expression,"both");
+    this.bridge = new JSXBridge(this,"ANOTHER_BRIDGE_ID");
+    this.bridgeCall("BRIDGE_ID_X","doSomething",{some_args_if_needed},callback_function_or_expression,"both");
 }
 
 //RESULT 
-> c calls methode "doSomething" on "BRIDGE_NAME_X" bridge (linked to a in JS conetxt and b in JSX context) with scope = "both".
+> c calls methode "doSomething" on "BRIDGE_ID_X" bridge (linked to a in JS conetxt and b in JSX context) with scope = "both".
 > which means that both "doSomething" methodes from both context (a in JS and b in JSX) are called :
 > a DOES SOMETHING in JS context
 > b DOES SOMETHING ELSE in JSX context
@@ -158,12 +160,12 @@ this.update(data) {
   $.evalFile(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
   
 // IN AN OBJECT IN JS CONTEXT
-var _bridge = new JSXBridge(this,"SOME_BRIDGE_NAME");
+var _bridge = new JSXBridge(this,"SOME_BRIDGE_ID");
 this.listen("a_custom_event_type",function(event) {(...)});
 this.dispatch("a_custom_event_type",some_data_object,"mirror");
 
 // IN AN OBJECT IN JSX CONTEXT
-var _bridge = new JSXBridge(this,"SAME_OR_OTHER_BRIDGE_NAME");
+var _bridge = new JSXBridge(this,"SAME_OR_OTHER_BRIDGE_ID");
 this.listen("a_custom_event_type",function(event) {(...)});
 this.dispatch("a_custom_event_type",some_data_object,"both")
 

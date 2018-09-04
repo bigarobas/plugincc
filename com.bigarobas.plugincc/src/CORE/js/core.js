@@ -3,26 +3,26 @@ __EXTENTION_PATH__ = __CSI__.getSystemPath(SystemPath.EXTENSION);
 
 $ =  require(__EXTENTION_PATH__ + "/CORE/js/libs/jquery-2.0.2.min.js");
 
-JSXBridgeEvent = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridgeEvent.jsx");
+JSXBridgeEvent = require(__EXTENTION_PATH__ + "/CORE/jsm/JSXBridgeEvent.jsm");
 
-JSXBridge = require(__EXTENTION_PATH__ + "/CORE/mixed/JSXBridge.jsx");
+JSXBridge = require(__EXTENTION_PATH__ + "/CORE/jsm/JSXBridge.jsm");
 JSXBridge.init(__CSI__);
 
-CoreEvents = require(__EXTENTION_PATH__ + "/CORE/mixed/CoreEvents.jsx");
+CoreEvents = require(__EXTENTION_PATH__ + "/CORE/jsm/CoreEvents.jsm");
 
-Debugger = require(__EXTENTION_PATH__ + "/CORE/mixed/Debugger.jsx");
+Debugger = require(__EXTENTION_PATH__ + "/CORE/jsm/Debugger.jsm");
 Debugger.setBridgeName("Debugger");
 DEBUG = debug = null;
 
 CSInterfaceHelper =  require(__EXTENTION_PATH__ + "/CORE/js/libs/CSInterfaceHelper.js");
 CSHelper = new CSInterfaceHelper(__CSI__);
 
-Environment =  require(__EXTENTION_PATH__ + "/CORE/mixed/Environment.jsx");
+Environment =  require(__EXTENTION_PATH__ + "/CORE/jsm/Environment.jsm");
 ENV = env = new Environment(__CSI__,'ENV');
 
-JSXHelper2 = JSXH = jsxh = require(__EXTENTION_PATH__ + "/CORE/mixed/_WIP_JSXHelper.jsx");
+JSXHelper2 = JSXH = jsxh = require(__EXTENTION_PATH__ + "/CORE/jsm/_WIP_JSXHelper.jsm");
 
-Configuration =  require(__EXTENTION_PATH__ + "/CORE/mixed/Configuration.jsx");
+Configuration =  require(__EXTENTION_PATH__ + "/CORE/jsm/Configuration.jsm");
 CONFIG = config = new Configuration("CONFIG");
 
 Module = require(__EXTENTION_PATH__ + "/CORE/js/modules/Module.js");

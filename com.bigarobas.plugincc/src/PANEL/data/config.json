@@ -1,6 +1,6 @@
 {
     "PANEL_IMPORTS_JSX" : [
-        "PANEL/mixed/MyPanel.jsx",
+        "PANEL/jsm/MyPanel.jsm",
         "CORE/jsx/libs/JSXHelper/JSXHelper_AEFT.jsx"
     ],
     "PANEL_MODULES_AUTO_DETECT" : true,

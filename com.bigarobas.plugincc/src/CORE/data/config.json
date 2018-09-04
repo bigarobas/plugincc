@@ -3,7 +3,7 @@
     "DEFAULT_FILE_NAME_SEPARATOR" : "_",
     "DEFAULT_MODULES_AUTO_DETECT_PATH" : "/PANEL/modules/",
     "CORE_IMPORTS_JSX" : [
-        "CORE/mixed/_WIP_JSXHelper.jsx",
+        "CORE/jsm/_WIP_JSXHelper.jsm",
         "CORE/jsx/libs/JSXHelper/JSXHelper.jsx"
     ]
 }

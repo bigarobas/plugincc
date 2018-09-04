@@ -40,9 +40,10 @@ CORE_Private_Class.prototype.init = function(path) {
 
     this.includeJSX(this._extension_path+"/"+"CORE/jsx/libs/json2.jsx");
     this.includeJSX(this._extension_path+"/"+"CORE/jsx/libs/es5-polyfill.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/JSXBridgeEvent.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/JSXBridge.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/CoreEvents.jsx");
+    
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/JSXBridgeEvent.jsm");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/JSXBridge.jsm");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/CoreEvents.jsm");
 
     this._bridge = new JSXBridge(this,"CORE"); 
     for (var i = 0 ; i<CoreEvents.events.length ; i++) 
@@ -50,9 +51,9 @@ CORE_Private_Class.prototype.init = function(path) {
     
     this.dispatch("CORE.JSX.INIT.BEGIN"); //A LITTLE LATE ^^
 
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/Environment.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/Debugger.jsx");
-    this.includeJSX(this._extension_path+"/"+"CORE/mixed/Configuration.jsx");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/Environment.jsm");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/Debugger.jsm");
+    this.includeJSX(this._extension_path+"/"+"CORE/jsm/Configuration.jsm");
     
     this.initEnv();
     this.initDebugger();

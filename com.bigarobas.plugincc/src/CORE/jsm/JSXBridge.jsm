@@ -7,7 +7,7 @@ JSXBridgeEventScope.JS = "js";
 JSXBridgeEventScope.JSX = "jsx";
 JSXBridgeEventScope.MIRROR = "mirror";
 JSXBridgeEventScope.BOTH = "both";
-JSXBridgeEventScope.SAME = "same";
+JSXBridgeEventScope.CURRENT = "current";
 
 //####################################################
 // JSXBridge
@@ -304,11 +304,11 @@ JSXBridge.unRegisterAsListener = function (bridge,type,handler) {
 
 JSXBridge.dispatchBridgeEvent = function (bridgeEvent) {
     var current_context = JSXBridge.getContext();
-    if (bridgeEvent.scope == current_context || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.SAME) {
+    if (bridgeEvent.scope == current_context || bridgeEvent.scope == JSXBridgeEventScope.BOTH || bridgeEvent.scope == JSXBridgeEventScope.CURRENT) {
         JSXBridge._dispatchBridgeEventAmongListeners(bridgeEvent);
     }
 
-    if (bridgeEvent.scope != current_context && bridgeEvent.scope != JSXBridgeEventScope.SAME) {
+    if (bridgeEvent.scope != current_context && bridgeEvent.scope != JSXBridgeEventScope.CURRENT) {
         JSXBridge.mirror(
             JSXBridge._bridge,
             '_dispatchBridgeEventAmongListeners',
@@ -355,12 +355,12 @@ JSXBridge.bridgeCall = function (bridge_name,function_name,function_args,callbac
     var event = (JSXBridge.checkContext("jsx")) ? new CSXSEvent() : new JSXBridgeEvent();
     event.type = JSXBridgeEvent.BRIDGE_CALL;
     
-    if (scope == current_context || scope == JSXBridgeEventScope.BOTH || scope == JSXBridgeEventScope.SAME) {
+    if (scope == current_context || scope == JSXBridgeEventScope.BOTH || scope == JSXBridgeEventScope.CURRENT) {
         event.data = data;
         callResult = JSXBridge.on_BRIDGE_CALL(event);
     }
 
-    if (scope != current_context && scope != JSXBridgeEventScope.SAME) {
+    if (scope != current_context && scope != JSXBridgeEventScope.CURRENT) {
         if (JSXBridge.checkContext("jsx")) {
             event.data = JSXBridge.stringify(data);
             event.dispatch();

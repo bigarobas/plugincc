@@ -6,7 +6,6 @@ class ModuleB extends Module {
     init () {
         super.init();
         $("#btn_test_2").click(function () {
-            CSHelper.evaluate('ModuleB.test()');
         });
     }
 
@@ -32,7 +31,6 @@ ModuleB.prototype = Object.create(Module.prototype);
 ModuleB.prototype.constructor = ModuleB;
 ModuleB.prototype.init = function() {
     $("#btn_test_2").click(function () {
-        CSHelper.evaluate('ModuleB.test()');
     });
 }
 

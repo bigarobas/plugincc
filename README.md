@@ -73,7 +73,7 @@ ClassA.prototype.log = function (message) {
 - it's also possible to easyly call methodes on both context using bridge names with 5 different scopes :
     - JS (only on JS context)
     - JSX (only on JSX context)
-    - SAME (only in the SAME context (JS or JSX))
+    - CURRENT (only in the CURRENT context (JS or JSX))
     - MIRROR (only in the MIRROR ("opposite") context (JS or JSX))
     - BOTH (in BOTH contexts (JS and JSX)) 
 ```javascript

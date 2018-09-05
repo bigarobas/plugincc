@@ -7,6 +7,10 @@ It probably needs a better name ^^
 - bring independent tools as well as a full framework and workflow based on those tools.
 - no dependencies (except CEP - Creative Cloud Extension SDK libs of course)
 
+To have a better understanding of what is at stake here I recommand you to read this wiki page about "mixed contexts" :
+[Mixed context in Adobe CC extensions with CEP](https://github.com/bigarobas/plugincc/wiki/Mixed-context-in-Adobe-CC-extensions-with-CEP)
+
+
 ## JSXBridge
 This is the central module around which this toolset is made.
 When creating a JSXBridge for an Object this object is auto implemented with the following methodes :

@@ -396,6 +396,7 @@ CORE.MODULES.READY
 - Making JSXBridge linker resolve bridge path based on registred object instead of evaluated string path based on existing global variables.
 - Modules : auto-detected mixed context modules from a specific project folder which let you developpe reusable modules
 - Panel : a ready to use Panel Class that you can inherite from to startup even more quickly
+- Commenting/Documenting the code
 - (?) Getting away from singelton model for CORE (?)
 - (?) Thinking multi-panel and cross-app (?)
 - (?) Thinking external framework (angular, react, vue, knockoutjs, etc.) compatibility / helpers (?)

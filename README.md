@@ -393,6 +393,8 @@ CORE.MODULES.READY
 ```
 ## WORK IN PROGRESS / WONDERING / ROADMAP :
 - [✔] Making JSXBridge linker resolve bridge path based on registred object instead of evaluated string path based on existing global variables. 
+- [✖] Config : evaluate values : internal key/value injection / external key/value injection
+- [✖] Config : add user localy saved key/values
 - [✖] Modules : auto-detected mixed context modules from a specific project folder which let you developpe reusable modules
 - [✖] Panel : a ready to use Panel Class that you can inherite from to startup even more quickly
 - [✖] Commenting/Documenting the code
